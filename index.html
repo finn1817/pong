@@ -4,94 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enhanced Pong Game</title>
-    <!-- Inline CSS -->
     <style>
+    * {
+        box-sizing: border-box;
+    }
+
     body {
         background: #222;
         margin: 0;
-        font-family: 'Courier New', monospace;
+        font-family: "Courier New", monospace;
         color: #fff;
         overflow: hidden;
     }
 
     .screen {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        /* Default to hidden: only explicitly shown screens are displayed */
+        inset: 0;
         display: none;
         justify-content: center;
         align-items: center;
         z-index: 1;
+        padding: 20px;
     }
 
-    /* Show any screen not marked as hidden */
     .screen:not(.hidden) {
-        display: flex !important;
+        display: flex;
     }
 
     .hidden {
         display: none !important;
     }
 
-    /* Setup Screen */
-    .setup-container {
+    .setup-container,
+    .gameover-container,
+    .stats-container,
+    .pause-container {
         text-align: center;
         background: #333;
         padding: 40px;
         border-radius: 12px;
         box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-        max-width: 400px;
+        max-width: 480px;
+        width: 100%;
     }
 
     .setup-container h1 {
-        font-size: 4rem;
+        font-size: clamp(2.5rem, 8vw, 4rem);
         margin: 0 0 30px 0;
         color: #fff;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        text-shadow: 0 0 14px rgba(255, 255, 255, 0.25);
     }
 
     .setup-options {
         display: flex;
         flex-direction: column;
-        gap: 25px;
+        gap: 28px;
         align-items: center;
     }
 
     .option-group {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
         align-items: center;
     }
 
     .option-group label {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         font-weight: bold;
     }
 
     .difficulty-buttons {
         display: flex;
-        gap: 15px;
+        gap: 14px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
-    .difficulty-btn {
-        padding: 12px 24px;
+    .difficulty-btn,
+    .start-btn,
+    .stats-btn,
+    .game-btn,
+    .control-btn {
+        padding: 12px 26px;
         background: #444;
         color: #fff;
-        border: 2px solid #666;
+        border: 2px solid transparent;
         border-radius: 8px;
         cursor: pointer;
         font-size: 1rem;
         font-family: inherit;
-        transition: all 0.3s;
+        transition: all 0.25s ease;
     }
 
-    .difficulty-btn:hover {
+    .difficulty-btn:hover,
+    .start-btn:hover,
+    .stats-btn:hover,
+    .game-btn:hover,
+    .control-btn:hover {
         background: #555;
-        border-color: #777;
     }
 
     .difficulty-btn.active {
@@ -99,31 +110,14 @@
         border-color: #0a84ff;
     }
 
-    #scoreLimit {
-        padding: 10px 15px;
-        background: #444;
-        color: #fff;
-        border: 2px solid #666;
-        border-radius: 8px;
-        font-size: 1rem;
-        font-family: inherit;
-    }
-
-    .start-btn, .stats-btn, .game-btn, .control-btn {
-        padding: 15px 30px;
+    .start-btn,
+    .control-btn {
         background: #0a84ff;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 1.1rem;
-        font-family: inherit;
-        transition: background 0.3s;
-        margin: 5px;
     }
 
-    .start-btn:hover, .stats-btn:hover, .game-btn:hover, .control-btn:hover {
-        background: #0066cc;
+    .start-btn:hover,
+    .control-btn:hover {
+        background: #006ad1;
     }
 
     .stats-btn {
@@ -134,10 +128,21 @@
         background: #777;
     }
 
-    /* Game Screen */
+    #scoreLimit {
+        padding: 10px 14px;
+        background: #444;
+        color: #fff;
+        border: 2px solid #666;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: inherit;
+    }
+
     #gameScreen {
         flex-direction: column;
-        gap: 20px;
+        gap: 22px;
+        padding: 20px;
+        align-items: center;
     }
 
     .game-ui {
@@ -145,14 +150,14 @@
     }
 
     .score-display {
-        font-size: 3rem;
+        font-size: clamp(2.5rem, 6vw, 4rem);
         font-weight: bold;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
 
     .separator {
-        margin: 0 20px;
-        opacity: 0.5;
+        margin: 0 14px;
+        opacity: 0.6;
     }
 
     .game-info {
@@ -163,90 +168,108 @@
     #pongCanvas {
         background: #111;
         display: block;
-        box-shadow: 0 0 20px #000;
-        border-radius: 8px;
-        /* Ensure the canvas has non-zero CSS size in flex layout (desktop too) */
-        width: 80vw;
-        height: 40vw;
+        box-shadow: 0 0 22px #000;
+        border-radius: 10px;
+        width: min(90vw, 960px);
+        height: min(50vw, 540px);
         max-width: 960px;
-        max-height: 480px;
-        min-width: 600px;
-        min-height: 300px;
+        max-height: 540px;
+        min-width: 280px;
+        min-height: 180px;
     }
 
     .controls {
         display: flex;
-        gap: 15px;
+        gap: 16px;
+        flex-wrap: wrap;
         justify-content: center;
     }
 
-    /* Game Over Screen */
-    .gameover-container, .stats-container, .pause-container {
-        text-align: center;
-        background: #333;
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-        max-width: 500px;
-    }
-
-    .gameover-container h2, .stats-container h2, .pause-container h2 {
-        font-size: 2.5rem;
-        margin: 0 0 20px 0;
+    .gameover-container h2,
+    .stats-container h2,
+    .pause-container h2 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        margin: 0 0 16px 0;
     }
 
     .final-score {
-        font-size: 1.5rem;
-        margin: 20px 0;
+        font-size: 1.2rem;
+        margin: 16px 0;
+        line-height: 1.6;
     }
 
-    .gameover-buttons, .pause-buttons {
+    .gameover-buttons,
+    .pause-buttons {
         display: flex;
-        gap: 15px;
+        gap: 14px;
         justify-content: center;
-        margin-top: 25px;
+        flex-wrap: wrap;
+        margin-top: 24px;
     }
 
-    /* Stats Screen */
     .stats-content {
         text-align: left;
-        margin: 20px 0;
-        font-size: 1.1rem;
-        max-height: 400px;
+        margin: 24px 0;
+        font-size: 1.05rem;
+        max-height: 360px;
         overflow-y: auto;
+        padding-right: 6px;
     }
 
-    .stats-content div {
+    .stats-content .stat-card {
         margin: 10px 0;
-        padding: 10px;
+        padding: 12px;
         background: #444;
-        border-radius: 5px;
+        border-radius: 6px;
     }
 
-    /* Responsive */
+    .stats-content .stats-subheading {
+        margin: 18px 0 8px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #9ecbff;
+    }
+
+    .stats-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .stats-content::-webkit-scrollbar-thumb {
+        background: #555;
+        border-radius: 4px;
+    }
+
     @media (max-width: 900px) {
-        #pongCanvas {
-            width: 90vw;
-            height: 45vw;
-        }
-        
-        .setup-container h1 {
-            font-size: 3rem;
-        }
-        
         .difficulty-buttons {
+            gap: 10px;
+        }
+
+        #pongCanvas {
+            width: 94vw;
+            height: 55vw;
+            min-width: 240px;
+            min-height: 160px;
+        }
+
+        .gameover-buttons,
+        .pause-buttons {
             flex-direction: column;
             gap: 10px;
         }
-        
-        .gameover-buttons, .pause-buttons {
-            flex-direction: column;
+    }
+
+    @media (max-width: 600px) {
+        .setup-container,
+        .gameover-container,
+        .stats-container,
+        .pause-container {
+            padding: 28px 20px;
         }
     }
     </style>
 </head>
 <body>
-    <!-- Game Setup Screen -->
     <div id="setupScreen" class="screen">
         <div class="setup-container">
             <h1>PONG</h1>
@@ -254,9 +277,9 @@
                 <div class="option-group">
                     <label>Difficulty:</label>
                     <div class="difficulty-buttons">
-                        <button id="easyBtn" class="difficulty-btn active" data-difficulty="easy">Easy</button>
-                        <button id="mediumBtn" class="difficulty-btn" data-difficulty="medium">Medium</button>
-                        <button id="hardBtn" class="difficulty-btn" data-difficulty="hard">Hard</button>
+                        <button class="difficulty-btn active" data-difficulty="easy">Easy</button>
+                        <button class="difficulty-btn" data-difficulty="medium">Medium</button>
+                        <button class="difficulty-btn" data-difficulty="hard">Hard</button>
                     </div>
                 </div>
                 <div class="option-group">
@@ -274,7 +297,6 @@
         </div>
     </div>
 
-    <!-- Game Screen -->
     <div id="gameScreen" class="screen hidden">
         <div class="game-ui">
             <div class="score-display">
@@ -286,14 +308,13 @@
                 <span id="difficultyDisplay">Easy</span> | <span id="scoreLimitDisplay">10</span> to win
             </div>
         </div>
-        <canvas id="pongCanvas" width="800" height="400"></canvas>
+        <canvas id="pongCanvas"></canvas>
         <div class="controls">
             <button id="pauseBtn" class="control-btn">Pause</button>
             <button id="quitBtn" class="control-btn">Quit</button>
         </div>
     </div>
 
-    <!-- Game Over Screen -->
     <div id="gameOverScreen" class="screen hidden">
         <div class="gameover-container">
             <h2 id="gameOverTitle">Game Over</h2>
@@ -305,7 +326,6 @@
         </div>
     </div>
 
-    <!-- Stats Screen -->
     <div id="statsScreen" class="screen hidden">
         <div class="stats-container">
             <h2>Statistics</h2>
@@ -314,7 +334,6 @@
         </div>
     </div>
 
-    <!-- Pause Screen -->
     <div id="pauseScreen" class="screen hidden">
         <div class="pause-container">
             <h2>Game Paused</h2>
@@ -325,239 +344,770 @@
         </div>
     </div>
 
-    <!-- Inline JS: game state, stats, debug, ui, game -->
     <script>
-    // === gameState.js ===
-    // Game state management
+    (() => {
+    "use strict";
+
+    const difficultySettings = {
+        easy:   { aiSpeed: 0.75, aiError: 1.40, ballSpeed: 0.85, ballAccel: 0.85 },
+        medium: { aiSpeed: 1.00, aiError: 1.00, ballSpeed: 1.00, ballAccel: 1.00 },
+        hard:   { aiSpeed: 1.25, aiError: 0.60, ballSpeed: 1.15, ballAccel: 1.10 }
+    };
+
+    const defaultStats = () => ({
+        gamesPlayed: 0,
+        gamesWon: 0,
+        gamesLost: 0,
+        totalPlayTime: 0,
+        bestWinStreak: 0,
+        currentWinStreak: 0,
+        difficulty: {
+            easy:   { played: 0, won: 0 },
+            medium: { played: 0, won: 0 },
+            hard:   { played: 0, won: 0 }
+        },
+        scoreLimit: {
+            5:  { played: 0, won: 0 },
+            10: { played: 0, won: 0 },
+            15: { played: 0, won: 0 },
+            21: { played: 0, won: 0 }
+        }
+    });
+
+    class StorageHelper {
+        constructor() {
+            this.enabled = true;
+            try {
+                const key = "__pong_storage_test__";
+                window.localStorage.setItem(key, "1");
+                window.localStorage.removeItem(key);
+            } catch (err) {
+                this.enabled = false;
+                console.warn("[PONG] LocalStorage unavailable. Stats will not persist.", err);
+            }
+        }
+        get(key) {
+            if (!this.enabled) return null;
+            try {
+                return window.localStorage.getItem(key);
+            } catch (err) {
+                console.warn("[PONG] Failed to read from LocalStorage.", err);
+                return null;
+            }
+        }
+        set(key, value) {
+            if (!this.enabled) return;
+            try {
+                window.localStorage.setItem(key, value);
+            } catch (err) {
+                console.warn("[PONG] Failed to write to LocalStorage.", err);
+            }
+        }
+    }
+
+    class StatsManager {
+        constructor(storage) {
+            this.storage = storage;
+            this.storageKey = "enhancedPongStats";
+            this.stats = this.load() ?? defaultStats();
+        }
+
+        load() {
+            const raw = this.storage.get(this.storageKey);
+            if (!raw) return null;
+            try {
+                const parsed = JSON.parse(raw);
+                const base = defaultStats();
+                return {
+                    ...base,
+                    ...parsed,
+                    difficulty: { ...base.difficulty, ...(parsed.difficulty || {}) },
+                    scoreLimit: { ...base.scoreLimit, ...(parsed.scoreLimit || {}) }
+                };
+            } catch (err) {
+                console.warn("[PONG] Corrupted stats detected. Resetting.", err);
+                return defaultStats();
+            }
+        }
+
+        save() {
+            this.storage.set(this.storageKey, JSON.stringify(this.stats));
+        }
+
+        recordGame({ difficulty, scoreLimit, playerScore, aiScore, playerWon, duration }) {
+            const diffKey = difficulty;
+            const limitKey = String(scoreLimit);
+
+            this.stats.gamesPlayed += 1;
+            this.stats.totalPlayTime += duration;
+
+            if (playerWon) {
+                this.stats.gamesWon += 1;
+                this.stats.currentWinStreak += 1;
+                this.stats.bestWinStreak = Math.max(this.stats.bestWinStreak, this.stats.currentWinStreak);
+            } else {
+                this.stats.gamesLost += 1;
+                this.stats.currentWinStreak = 0;
+            }
+
+            if (!this.stats.difficulty[diffKey]) {
+                this.stats.difficulty[diffKey] = { played: 0, won: 0 };
+            }
+            this.stats.difficulty[diffKey].played += 1;
+            if (playerWon) this.stats.difficulty[diffKey].won += 1;
+
+            if (!this.stats.scoreLimit[limitKey]) {
+                this.stats.scoreLimit[limitKey] = { played: 0, won: 0 };
+            }
+            this.stats.scoreLimit[limitKey].played += 1;
+            if (playerWon) this.stats.scoreLimit[limitKey].won += 1;
+
+            this.save();
+        }
+
+        getSummary() {
+            const data = this.stats;
+            const winRate = data.gamesPlayed ? Math.round((data.gamesWon / data.gamesPlayed) * 100) : 0;
+            const avgTimeSec = data.gamesPlayed ? Math.round(data.totalPlayTime / data.gamesPlayed / 1000) : 0;
+
+            return {
+                gamesPlayed: data.gamesPlayed,
+                gamesWon: data.gamesWon,
+                gamesLost: data.gamesLost,
+                winRate,
+                totalPlayTime: StatsManager.formatDuration(data.totalPlayTime),
+                avgGameTime: avgTimeSec,
+                bestWinStreak: data.bestWinStreak,
+                currentWinStreak: data.currentWinStreak
+            };
+        }
+
+        static formatDuration(ms) {
+            const totalSeconds = Math.round(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+        }
+    }
+
     class GameState {
         constructor() {
-            this.currentScreen = 'setup';
-            this.difficulty = 'easy';
+            this.difficulty = "easy";
             this.scoreLimit = 10;
+            this.running = false;
+            this.paused = false;
             this.playerScore = 0;
             this.aiScore = 0;
-            this.gameStartTime = null;
-            this.gamePaused = false;
-            this.gameRunning = false;
+            this.startTimestamp = 0;
+            this.endTimestamp = 0;
         }
 
-        setDifficulty(difficulty) {
-            this.difficulty = difficulty;
+        applyDifficulty(difficulty) {
+            if (difficultySettings[difficulty]) {
+                this.difficulty = difficulty;
+            }
         }
 
-        setScoreLimit(limit) {
-            this.scoreLimit = parseInt(limit);
+        applyScoreLimit(limit) {
+            const parsed = Number.parseInt(limit, 10);
+            if (!Number.isNaN(parsed)) {
+                this.scoreLimit = parsed;
+            }
         }
 
-        resetGame() {
+        startMatch() {
             this.playerScore = 0;
             this.aiScore = 0;
-            this.gameStartTime = Date.now();
-            this.gamePaused = false;
-            this.gameRunning = true;
+            this.running = true;
+            this.paused = false;
+            this.startTimestamp = performance.now();
+            this.endTimestamp = 0;
         }
 
-        playerScored() {
-            this.playerScore++;
-            return this.playerScore >= this.scoreLimit;
+        finishMatch() {
+            this.running = false;
+            this.paused = false;
+            this.endTimestamp = performance.now();
         }
 
-        aiScored() {
-            this.aiScore++;
-            return this.aiScore >= this.scoreLimit;
+        getDuration() {
+            if (!this.startTimestamp) return 0;
+            const end = this.endTimestamp || performance.now();
+            return Math.max(0, end - this.startTimestamp);
         }
 
-        togglePause() {
-            this.gamePaused = !this.gamePaused;
-        }
-
-        endGame() {
-            this.gameRunning = false;
-            const gameData = {
-                difficulty: this.difficulty,
-                scoreLimit: this.scoreLimit,
-                playerScore: this.playerScore,
-                aiScore: this.aiScore,
-                playerWon: this.playerScore >= this.scoreLimit,
-                duration: Date.now() - this.gameStartTime
-            };
-            // Save to stats
-            statsManager.recordGame(gameData);
-            return gameData;
+        registerPoint(who) {
+            if (who === "player") {
+                this.playerScore += 1;
+            } else {
+                this.aiScore += 1;
+            }
+            return this.playerScore >= this.scoreLimit || this.aiScore >= this.scoreLimit;
         }
 
         getDifficultySettings() {
-            const settings = {
-                easy: { aiSpeed: 2.5, aiReactionDelay: 0.3, aiPrediction: 0.1, ballSpeedMultiplier: 0.8 },
-                medium: { aiSpeed: 4, aiReactionDelay: 0.15, aiPrediction: 0.3, ballSpeedMultiplier: 1.0 },
-                hard: { aiSpeed: 6, aiReactionDelay: 0.05, aiPrediction: 0.7, ballSpeedMultiplier: 1.3 }
-            };
-            return settings[this.difficulty];
+            return difficultySettings[this.difficulty];
         }
     }
-    // Global game state instance
-    const gameState = new GameState();
 
-    // === stats.js ===
-    // Statistics management
-    class StatsManager {
-        constructor() { this.loadStats(); }
-        loadStats() {
-            const saved = localStorage.getItem('pongStats');
-            this.stats = saved ? JSON.parse(saved) : {
-                gamesPlayed: 0, gamesWon: 0, gamesLost: 0, totalPlayTime: 0,
-                bestWinStreak: 0, currentWinStreak: 0,
-                difficultyStats: { easy: { played: 0, won: 0 }, medium: { played: 0, won: 0 }, hard: { played: 0, won: 0 } },
-                scoreLimitStats: { 5: { played: 0, won: 0 }, 10: { played: 0, won: 0 }, 15: { played: 0, won: 0 }, 21: { played: 0, won: 0 } }
+    class UIManager {
+        constructor(app) {
+            this.app = app;
+            this.screens = Array.from(document.querySelectorAll(".screen"));
+            this.cacheElements();
+            this.bindEvents();
+            this.highlightDifficulty(this.app.state.difficulty);
+            this.scoreLimitSelect.value = this.app.state.scoreLimit;
+            this.updateHUD(this.app.state);
+            this.showSetup();
+        }
+
+        cacheElements() {
+            this.playerScoreEl = document.getElementById("playerScore");
+            this.aiScoreEl = document.getElementById("aiScore");
+            this.difficultyDisplayEl = document.getElementById("difficultyDisplay");
+            this.scoreLimitDisplayEl = document.getElementById("scoreLimitDisplay");
+            this.scoreLimitSelect = document.getElementById("scoreLimit");
+            this.statsContentEl = document.getElementById("statsContent");
+            this.gameOverTitleEl = document.getElementById("gameOverTitle");
+            this.finalScoreEl = document.getElementById("finalScore");
+        }
+
+        bindEvents() {
+            document.querySelectorAll(".difficulty-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const diff = btn.dataset.difficulty;
+                    this.highlightDifficulty(diff);
+                    this.app.updateSettings({ difficulty: diff });
+                });
+            });
+
+            this.scoreLimitSelect.addEventListener("change", (event) => {
+                this.app.updateSettings({ scoreLimit: event.target.value });
+            });
+
+            const click = (id, handler) => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener("click", handler);
             };
+
+            click("startGameBtn", () => this.app.startMatch());
+            click("viewStatsBtn", () => this.app.showStats());
+            click("pauseBtn", () => this.app.pauseMatch());
+            click("quitBtn", () => this.app.quitToMenu());
+            click("resumeBtn", () => this.app.resumeMatch());
+            click("pauseQuitBtn", () => this.app.quitToMenu());
+            click("playAgainBtn", () => this.app.startMatch());
+            click("mainMenuBtn", () => this.app.quitToMenu());
+            click("backToMenuBtn", () => this.app.quitToMenu());
+
+            document.addEventListener("keydown", (event) => {
+                if (event.code === "Space") {
+                    if (!event.repeat && this.app.state.running) {
+                        event.preventDefault();
+                        if (this.app.state.paused) this.app.resumeMatch();
+                        else this.app.pauseMatch();
+                    }
+                } else if (event.code === "Escape") {
+                    if (this.app.state.running) {
+                        event.preventDefault();
+                        if (this.app.state.paused) this.app.resumeMatch();
+                        else this.app.pauseMatch();
+                    }
+                }
+            });
         }
-        saveStats() { localStorage.setItem('pongStats', JSON.stringify(this.stats)); }
-        recordGame(gameData) {
-            this.stats.gamesPlayed++;
-            this.stats.totalPlayTime += gameData.duration;
-            this.stats.difficultyStats[gameData.difficulty].played++;
-            this.stats.scoreLimitStats[gameData.scoreLimit].played++;
-            if (gameData.playerWon) {
-                this.stats.gamesWon++; this.stats.currentWinStreak++;
-                this.stats.bestWinStreak = Math.max(this.stats.bestWinStreak, this.stats.currentWinStreak);
-                this.stats.difficultyStats[gameData.difficulty].won++;
-                this.stats.scoreLimitStats[gameData.scoreLimit].won++;
-            } else { this.stats.gamesLost++; this.stats.currentWinStreak = 0; }
-            this.saveStats();
+
+        highlightDifficulty(difficulty) {
+            document.querySelectorAll(".difficulty-btn").forEach((btn) => {
+                btn.classList.toggle("active", btn.dataset.difficulty === difficulty);
+            });
         }
-        getWinRate() { return this.stats.gamesPlayed === 0 ? 0 : Math.round((this.stats.gamesWon / this.stats.gamesPlayed) * 100); }
-        getAverageGameTime() { return this.stats.gamesPlayed === 0 ? 0 : Math.round(this.stats.totalPlayTime / this.stats.gamesPlayed / 1000); }
-        getDifficultyWinRate(difficulty) {
-            const s = this.stats.difficultyStats[difficulty];
-            return s.played === 0 ? 0 : Math.round((s.won / s.played) * 100);
+
+        showScreen(name) {
+            this.screens.forEach((screen) => {
+                const shouldShow = screen.id === `${name}Screen`;
+                screen.classList.toggle("hidden", !shouldShow);
+            });
+            this.currentScreen = name;
         }
-        formatTime(ms) { const s = Math.floor(ms / 1000), m = Math.floor(s / 60), r = s % 60; return `${m}:${r.toString().padStart(2,'0')}`; }
-        getStatsHTML() {
-            return `
-                <div><strong>Games Played:</strong> ${this.stats.gamesPlayed}</div>
-                <div><strong>Games Won:</strong> ${this.stats.gamesWon}</div>
-                <div><strong>Games Lost:</strong> ${this.stats.gamesLost}</div>
-                <div><strong>Win Rate:</strong> ${this.getWinRate()}%</div>
-                <div><strong>Current Win Streak:</strong> ${this.stats.currentWinStreak}</div>
-                <div><strong>Best Win Streak:</strong> ${this.stats.bestWinStreak}</div>
-                <div><strong>Total Play Time:</strong> ${this.formatTime(this.stats.totalPlayTime)}</div>
-                <div><strong>Average Game Time:</strong> ${this.getAverageGameTime()}s</div>
-                <div><strong>Easy Win Rate:</strong> ${this.getDifficultyWinRate('easy')}% (${this.stats.difficultyStats.easy.won}/${this.stats.difficultyStats.easy.played})</div>
-                <div><strong>Medium Win Rate:</strong> ${this.getDifficultyWinRate('medium')}% (${this.stats.difficultyStats.medium.won}/${this.stats.difficultyStats.medium.played})</div>
-                <div><strong>Hard Win Rate:</strong> ${this.getDifficultyWinRate('hard')}% (${this.stats.difficultyStats.hard.won}/${this.stats.difficultyStats.hard.played})</div>
+
+        showSetup() {
+            this.highlightDifficulty(this.app.state.difficulty);
+            this.scoreLimitSelect.value = this.app.state.scoreLimit;
+            this.showScreen("setup");
+        }
+
+        showGameScreen() {
+            this.showScreen("game");
+        }
+
+        showPauseScreen() {
+            this.showScreen("pause");
+        }
+
+        showStatsScreen() {
+            this.showScreen("stats");
+        }
+
+        showGameOver(playerWon, state) {
+            const title = playerWon ? "You Won!" : "You Lost!";
+            this.gameOverTitleEl.textContent = title;
+            this.gameOverTitleEl.style.color = playerWon ? "#4CAF50" : "#F44336";
+
+            const duration = StatsManager.formatDuration(state.getDuration());
+            this.finalScoreEl.innerHTML = `
+                Final Score: ${state.playerScore} - ${state.aiScore}<br>
+                Difficulty: ${this.capitalize(state.difficulty)}<br>
+                Score Limit: ${state.scoreLimit}<br>
+                Match Time: ${duration}
+            `;
+
+            this.showScreen("gameOver");
+        }
+
+        updateHUD(state) {
+            this.playerScoreEl.textContent = state.playerScore ?? 0;
+            this.aiScoreEl.textContent = state.aiScore ?? 0;
+            this.difficultyDisplayEl.textContent = this.capitalize(state.difficulty);
+            this.scoreLimitDisplayEl.textContent = state.scoreLimit;
+            this.scoreLimitSelect.value = state.scoreLimit;
+        }
+
+        populateStats(stats) {
+            if (!stats.gamesPlayed) {
+                this.statsContentEl.innerHTML = '<div class="stat-card">No games played yet. Start a match to build your stats!</div>';
+                return;
+            }
+
+            const summary = this.app.stats.getSummary();
+
+            const diffRows = Object.entries(stats.difficulty).map(([key, data]) => {
+                const rate = data.played ? Math.round((data.won / data.played) * 100) : 0;
+                return `<div class="stat-card"><strong>${this.capitalize(key)}:</strong> ${data.won}/${data.played} wins (${rate}%)</div>`;
+            }).join("");
+
+            const limitRows = Object.entries(stats.scoreLimit).map(([limit, data]) => {
+                const rate = data.played ? Math.round((data.won / data.played) * 100) : 0;
+                return `<div class="stat-card"><strong>${limit} Points:</strong> ${data.won}/${data.played} wins (${rate}%)</div>`;
+            }).join("");
+
+            this.statsContentEl.innerHTML = `
+                <div class="stat-card"><strong>Games Played:</strong> ${summary.gamesPlayed}</div>
+                <div class="stat-card"><strong>Wins:</strong> ${summary.gamesWon}</div>
+                <div class="stat-card"><strong>Losses:</strong> ${summary.gamesLost}</div>
+                <div class="stat-card"><strong>Win Rate:</strong> ${summary.winRate}%</div>
+                <div class="stat-card"><strong>Current Win Streak:</strong> ${summary.currentWinStreak}</div>
+                <div class="stat-card"><strong>Best Win Streak:</strong> ${summary.bestWinStreak}</div>
+                <div class="stat-card"><strong>Total Play Time:</strong> ${summary.totalPlayTime}</div>
+                <div class="stat-card"><strong>Average Match Length:</strong> ${summary.avgGameTime}s</div>
+                <div class="stats-subheading">By Difficulty</div>
+                ${diffRows}
+                <div class="stats-subheading">By Score Limit</div>
+                ${limitRows}
             `;
         }
-    }
-    // Global stats manager instance
-    const statsManager = new StatsManager();
 
-    // === debug.js ===
-    // Minimal debugging utility for the Pong app
-    // Toggle: add ?debug=1 to URL or press Ctrl/Cmd + D
-    (function () {
-      let enabled = false; let panel; let initialized = false;
-      function isEnabledFromUrlOrStorage() {
-        try { const params = new URLSearchParams(window.location.search); if (params.has('debug')) return true; return localStorage.getItem('pongDebug') === '1'; } catch(_) { return false; }
-      }
-      function ensurePanel() {
-        if (!enabled) return; if (panel) return panel; panel = document.createElement('div'); panel.id='debugPanel';
-        Object.assign(panel.style,{position:'fixed',bottom:'8px',right:'8px',zIndex:'9999',background:'rgba(0,0,0,0.8)',color:'#0f0',font:'12px/1.4 monospace',padding:'8px 10px',border:'1px solid #0f0',borderRadius:'6px',maxWidth:'42vw',maxHeight:'46vh',overflow:'auto',whiteSpace:'pre-wrap',pointerEvents:'auto'});
-        document.body.appendChild(panel); return panel;
-      }
-      function ensureToggleBadge(){ if(document.getElementById('debugToggleBadge'))return; const b=document.createElement('button'); b.id='debugToggleBadge'; b.textContent='🐞 Debug'; Object.assign(b.style,{position:'fixed',top:'8px',right:'8px',zIndex:'10000',padding:'4px 8px',font:'12px monospace',background:enabled?'#093':'#444',color:'#fff',border:'1px solid #888',borderRadius:'4px',cursor:'pointer',opacity:'0.7',userSelect:'none'}); b.title='Click to toggle debug (Ctrl/Cmd+D also)'; b.addEventListener('mouseenter',()=>b.style.opacity='1'); b.addEventListener('mouseleave',()=>b.style.opacity='0.7'); b.addEventListener('click',()=>toggle()); document.body.appendChild(b); return b; }
-      function appendLine(text){ if(!enabled)return; ensurePanel(); if(!panel)return; const line=document.createElement('div'); line.textContent=typeof text==='string'?text:JSON.stringify(text); panel.appendChild(line); panel.scrollTop=panel.scrollHeight; }
-      function clearPanel(){ if(panel) panel.textContent=''; }
-      function log(...args){ if(!enabled) return; console.log('[PONG]',...args); appendLine(args.map(a=>typeof a==='object'?JSON.stringify(a):String(a)).join(' ')); }
-      function dumpScreens(){ try{ const screens=Array.from(document.querySelectorAll('.screen')).map(el=>{ const cs=getComputedStyle(el); const r=el.getBoundingClientRect(); return { id:el.id, classes:el.className, display:cs.display, visibility:cs.visibility, zIndex:cs.zIndex, rect:{x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.width),h:Math.round(r.height)} }; }); log('Visible screens snapshot:',screens); return screens; }catch(e){ log('dumpScreens error:',e);} }
-      function dumpCanvas(){ try{ const c=document.getElementById('pongCanvas'); if(!c) return; const r=c.getBoundingClientRect(); log('Canvas metrics',{ attr:{width:c.width,height:c.height}, css:{clientWidth:c.clientWidth,clientHeight:c.clientHeight}, rect:{x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.width),h:Math.round(r.height)}, dpr:window.devicePixelRatio }); }catch(e){ log('dumpCanvas error:',e);} }
-      function toggle(){ enabled=!enabled; try{ localStorage.setItem('pongDebug', enabled?'1':'0'); }catch(_){} if(enabled){ ensurePanel(); clearPanel(); log('Debug enabled'); setTimeout(()=>{ dumpScreens(); dumpCanvas(); },0);} else { if(panel) panel.remove(); panel=null; console.log('[PONG] Debug disabled'); } const badge=document.getElementById('debugToggleBadge'); if(badge) badge.style.background=enabled?'#093':'#444'; }
-      function init(){ if(initialized) return; initialized=true; enabled=isEnabledFromUrlOrStorage(); ensureToggleBadge(); if(enabled){ ensurePanel(); log('Debug auto-enabled'); setTimeout(()=>{ dumpScreens(); dumpCanvas(); },0); } window.addEventListener('error',(e)=>{ if(!enabled) return; log('Runtime error:',{message:e.message,filename:e.filename,lineno:e.lineno,colno:e.colno}); }); window.addEventListener('unhandledrejection',(e)=>{ if(!enabled) return; log('Unhandled rejection:', e.reason); }); window.addEventListener('keydown',(e)=>{ const key=e.key?.toLowerCase(); if(key==='d' && (e.ctrlKey||e.metaKey)){ e.preventDefault(); toggle(); } }); }
-      window.PongDebug = { get enabled(){ return enabled; }, init, toggle, log, dumpScreens, dumpCanvas, panel:()=>panel };
-      document.addEventListener('DOMContentLoaded', init);
-    })();
-
-    // === ui.js ===
-    // UI management
-    class UIManager {
-        constructor() {
-            this.currentScreen = 'setup';
-            this.setupEventListeners();
-            this.showScreen('setup');
-            try { if (window.PongDebug && PongDebug.enabled) { PongDebug.log('UIManager initialized'); PongDebug.dumpScreens(); PongDebug.dumpCanvas(); } } catch(_){}
+        capitalize(text) {
+            return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
         }
-        setupEventListeners(){
-            document.querySelectorAll('.difficulty-btn').forEach(btn=>{
-                btn.addEventListener('click',(e)=>{ document.querySelectorAll('.difficulty-btn').forEach(b=>b.classList.remove('active')); e.target.classList.add('active'); gameState.setDifficulty(e.target.dataset.difficulty); });
-            });
-            document.getElementById('scoreLimit').addEventListener('change',(e)=>{ gameState.setScoreLimit(e.target.value); });
-            document.getElementById('startGameBtn').addEventListener('click',()=>{ this.startGame(); });
-            document.getElementById('viewStatsBtn').addEventListener('click',()=>{ this.showStats(); });
-            document.getElementById('pauseBtn').addEventListener('click',()=>{ this.pauseGame(); });
-            document.getElementById('quitBtn').addEventListener('click',()=>{ this.quitGame(); });
-            document.getElementById('playAgainBtn').addEventListener('click',()=>{ this.startGame(); });
-            document.getElementById('mainMenuBtn').addEventListener('click',()=>{ this.showSetupScreen(); });
-            document.getElementById('backToMenuBtn').addEventListener('click',()=>{ this.showSetupScreen(); });
-            document.getElementById('resumeBtn').addEventListener('click',()=>{ this.resumeGame(); });
-            document.getElementById('pauseQuitBtn').addEventListener('click',()=>{ this.showSetupScreen(); });
-            document.addEventListener('keydown',(e)=>{ if(e.code==='Space' && this.currentScreen==='game'){ e.preventDefault(); this.pauseGame(); } if(e.code==='Escape'){ if(this.currentScreen==='game'){ this.pauseGame(); } else if(this.currentScreen==='pause'){ this.resumeGame(); } } });
-        }
-        showScreen(name){ document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden')); const target=document.getElementById(name+'Screen'); if(target){ target.classList.remove('hidden'); this.currentScreen=name; gameState.currentScreen=name; try{ if(window.PongDebug && PongDebug.enabled){ PongDebug.log('showScreen ->', name); PongDebug.dumpScreens(); } }catch(_){} } }
-        startGame(){ gameState.resetGame(); this.updateGameUI(); this.showScreen('game'); if(window.game){ window.game.start(); gameState.gamePaused=false; gameState.gameRunning=true; try{ requestAnimationFrame(()=> window.game && window.game.draw()); }catch(_){} } try{ if(window.PongDebug && PongDebug.enabled){ PongDebug.log('startGame'); PongDebug.dumpScreens(); PongDebug.dumpCanvas(); } }catch(_){} }
-        pauseGame(){ gameState.togglePause(); if(gameState.gamePaused){ this.showScreen('pause'); } try{ if(window.PongDebug && PongDebug.enabled) PongDebug.log('pauseGame ->', gameState.gamePaused); }catch(_){} }
-        resumeGame(){ gameState.gamePaused=false; this.showScreen('game'); try{ if(window.PongDebug && PongDebug.enabled) PongDebug.log('resumeGame'); }catch(_){} }
-        quitGame(){ gameState.gameRunning=false; gameState.gamePaused=false; this.showScreen('setup'); try{ if(window.PongDebug && PongDebug.enabled) PongDebug.log('quitGame'); }catch(_){} }
-        showGameOver(playerWon){ const title=document.getElementById('gameOverTitle'); const finalScore=document.getElementById('finalScore'); title.textContent=playerWon?'You Won!':'You Lost!'; title.style.color=playerWon?'#4CAF50':'#F44336'; finalScore.innerHTML=`Final Score: ${gameState.playerScore} - ${gameState.aiScore}<br>Difficulty: ${gameState.difficulty.charAt(0).toUpperCase()+gameState.difficulty.slice(1)}<br>Score Limit: ${gameState.scoreLimit}`; this.showScreen('gameOver'); try{ if(window.PongDebug && PongDebug.enabled) PongDebug.log('showGameOver',{playerWon,p:gameState.playerScore,a:gameState.aiScore}); }catch(_){} }
-        showStats(){ const statsContent=document.getElementById('statsContent'); statsContent.innerHTML=statsManager.getStatsHTML(); this.showScreen('stats'); try{ if(window.PongDebug && PongDebug.enabled) PongDebug.log('showStats'); }catch(_){} }
-        showSetupScreen(){ gameState.gameRunning=false; gameState.gamePaused=false; this.showScreen('setup'); try{ if(window.PongDebug && PongDebug.enabled) PongDebug.log('showSetupScreen'); }catch(_){} }
-        updateGameUI(){ document.getElementById('playerScore').textContent=gameState.playerScore; document.getElementById('aiScore').textContent=gameState.aiScore; document.getElementById('difficultyDisplay').textContent=gameState.difficulty.charAt(0).toUpperCase()+gameState.difficulty.slice(1); document.getElementById('scoreLimitDisplay').textContent=gameState.scoreLimit; }
-        updateScore(){ this.updateGameUI(); try{ if(window.PongDebug && PongDebug.enabled) PongDebug.log('updateScore',{p:gameState.playerScore,a:gameState.aiScore}); }catch(_){} }
     }
-    let uiManager; document.addEventListener('DOMContentLoaded',()=>{ uiManager=new UIManager(); });
 
-    // === game.js ===
     class PongGame {
-        constructor(){
-            this.canvas=document.getElementById('pongCanvas');
-            this.ctx=this.canvas.getContext('2d');
-            this.WIDTH=this.canvas.width; this.HEIGHT=this.canvas.height; this._lastDebugTick=0;
-            this.PADDLE_WIDTH=12; this.PADDLE_HEIGHT=80; this.PADDLE_MARGIN=20; this.BALL_SIZE=12;
-            this.setupGameObjects(); this.setupControls();
-            try{ if(window.PongDebug && PongDebug.enabled){ PongDebug.log('PongGame initialized',{width:this.WIDTH,height:this.HEIGHT}); PongDebug.dumpCanvas(); } }catch(_){}
-            this.gameLoop();
+        constructor(app) {
+            this.app = app;
+            this.canvas = document.getElementById("pongCanvas");
+            this.ctx = this.canvas.getContext("2d");
+            if (!this.ctx) {
+                throw new Error("Unable to acquire 2D context for Pong canvas.");
+            }
+
+            this.width = 0;
+            this.height = 0;
+
+            this.playerPaddle = { x: 0, y: 0, width: 12, height: 90 };
+            this.aiPaddle = { x: 0, y: 0, width: 12, height: 90 };
+            this.ball = { x: 0, y: 0, size: 12, vx: 0, vy: 0 };
+
+            this.playerSpeed = 0;
+            this.aiBaseSpeed = 0;
+            this.aiBaseError = 0;
+            this.baseBallSpeed = 0;
+            this.baseBallAccel = 0;
+
+            this.keys = new Set();
+            this.mouseControl = false;
+            this.lastTimestamp = 0;
+
+            this.resizeCanvas();
+            window.addEventListener("resize", () => this.resizeCanvas());
+            this.bindControls();
+            requestAnimationFrame((ts) => this.loop(ts));
         }
-        setupGameObjects(){
-            this.leftPaddle={ x:this.PADDLE_MARGIN, y:this.HEIGHT/2 - this.PADDLE_HEIGHT/2, width:this.PADDLE_WIDTH, height:this.PADDLE_HEIGHT };
-            this.rightPaddle={ x:this.WIDTH - this.PADDLE_MARGIN - this.PADDLE_WIDTH, y:this.HEIGHT/2 - this.PADDLE_HEIGHT/2, width:this.PADDLE_WIDTH, height:this.PADDLE_HEIGHT };
-            this.resetBall();
+
+        resizeCanvas() {
+            const w = Math.max(1, Math.round(this.canvas.clientWidth));
+            const h = Math.max(1, Math.round(this.canvas.clientHeight));
+
+            const prevWidth = this.width || w;
+            const prevHeight = this.height || h;
+
+            const prevPlayerRatio = this.playerPaddle.height ? this.playerPaddle.y / prevHeight : 0.5;
+            const prevAiRatio = this.aiPaddle.height ? this.aiPaddle.y / prevHeight : 0.5;
+
+            const prevBallCenterX = (typeof this.ball.x === "number") ? this.ball.x + this.ball.size / 2 : prevWidth / 2;
+            const prevBallCenterY = (typeof this.ball.y === "number") ? this.ball.y + this.ball.size / 2 : prevHeight / 2;
+            const prevBallRatioX = prevWidth ? prevBallCenterX / prevWidth : 0.5;
+            const prevBallRatioY = prevHeight ? prevBallCenterY / prevHeight : 0.5;
+
+            this.canvas.width = w;
+            this.canvas.height = h;
+            this.width = w;
+            this.height = h;
+
+            const paddleWidth = Math.max(10, w * 0.015);
+            const paddleHeight = Math.max(60, h * 0.22);
+            const paddleMargin = Math.max(10, w * 0.03);
+
+            this.playerPaddle.width = paddleWidth;
+            this.playerPaddle.height = paddleHeight;
+            this.playerPaddle.x = paddleMargin;
+            this.playerPaddle.y = prevPlayerRatio * h;
+
+            this.aiPaddle.width = paddleWidth;
+            this.aiPaddle.height = paddleHeight;
+            this.aiPaddle.x = w - paddleMargin - paddleWidth;
+            this.aiPaddle.y = prevAiRatio * h;
+
+            this.clampPaddle(this.playerPaddle);
+            this.clampPaddle(this.aiPaddle);
+
+            const ballSize = Math.max(10, w * 0.02);
+            const scaleX = prevWidth ? w / prevWidth : 1;
+            const scaleY = prevHeight ? h / prevHeight : 1;
+
+            this.ball.size = ballSize;
+            this.ball.x = prevBallRatioX * w - ballSize / 2;
+            this.ball.y = prevBallRatioY * h - ballSize / 2;
+            this.ball.vx *= scaleX;
+            this.ball.vy *= scaleY;
+
+            this.playerSpeed = h * 1.6;
+            this.aiBaseSpeed = h * 1.35;
+            this.aiBaseError = h * 0.18;
+            this.baseBallSpeed = w * 0.75;
+            this.baseBallAccel = w * 0.04;
+
+            if (!this.app.state.running) {
+                this.centerElements();
+            }
         }
-        resetBall(){ const s=gameState.getDifficultySettings(); this.ball={ x:this.WIDTH/2 - this.BALL_SIZE/2, y:this.HEIGHT/2 - this.BALL_SIZE/2, vx:(Math.random()>0.5?4:-4)*s.ballSpeedMultiplier, vy:(Math.random()-0.5)*4*s.ballSpeedMultiplier, size:this.BALL_SIZE }; }
-        setupControls(){ this.canvas.addEventListener('mousemove',(e)=>{ if(!gameState.gameRunning || gameState.gamePaused) return; const rect=this.canvas.getBoundingClientRect(); let mouseY=e.clientY - rect.top; this.leftPaddle.y = mouseY - this.leftPaddle.height/2; if(this.leftPaddle.y<0) this.leftPaddle.y=0; if(this.leftPaddle.y + this.leftPaddle.height>this.HEIGHT) this.leftPaddle.y=this.HEIGHT - this.leftPaddle.height; }); }
-        rectIntersect(a,b){ return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y; }
-        updateAI(){ const s=gameState.getDifficultySettings(); let targetY; if(Math.random()<s.aiPrediction){ let steps=Math.abs((this.rightPaddle.x - this.ball.x)/this.ball.vx); let predictedY=this.ball.y + (this.ball.vy*steps); targetY=predictedY - this.rightPaddle.height/2; } else { targetY=this.ball.y + this.ball.size/2 - this.rightPaddle.height/2; } if(gameState.difficulty==='easy'){ targetY += (Math.random()-0.5)*60; } else if(gameState.difficulty==='medium'){ targetY += (Math.random()-0.5)*30; } const diff=targetY - this.rightPaddle.y; if(Math.abs(diff) > s.aiReactionDelay*100){ if(diff>0){ this.rightPaddle.y += Math.min(s.aiSpeed,diff); } else { this.rightPaddle.y += Math.max(-s.aiSpeed,diff); } } if(this.rightPaddle.y<0) this.rightPaddle.y=0; if(this.rightPaddle.y + this.rightPaddle.height>this.HEIGHT) this.rightPaddle.y=this.HEIGHT - this.rightPaddle.height; }
-        update(){ if(!gameState.gameRunning || gameState.gamePaused) return; this.ball.x += this.ball.vx; this.ball.y += this.ball.vy; if(this.ball.y < 0){ this.ball.y = 0; this.ball.vy *= -1; } if(this.ball.y + this.ball.size > this.HEIGHT){ this.ball.y = this.HEIGHT - this.ball.size; this.ball.vy *= -1; }
-            const leftRect={ x:this.leftPaddle.x, y:this.leftPaddle.y, width:this.leftPaddle.width, height:this.leftPaddle.height };
-            const rightRect={ x:this.rightPaddle.x, y:this.rightPaddle.y, width:this.rightPaddle.width, height:this.rightPaddle.height };
-            const ballRect={ x:this.ball.x, y:this.ball.y, width:this.ball.size, height:this.ball.size };
-            if(this.rectIntersect(ballRect,leftRect) && this.ball.vx < 0){ this.ball.x = this.leftPaddle.x + this.leftPaddle.width; this.ball.vx *= -1.05; this.ball.vy += ((this.ball.y + this.ball.size/2) - (this.leftPaddle.y + this.leftPaddle.height/2))*0.15; }
-            if(this.rectIntersect(ballRect,rightRect) && this.ball.vx > 0){ this.ball.x = this.rightPaddle.x - this.ball.size; this.ball.vx *= -1.05; this.ball.vy += ((this.ball.y + this.ball.size/2) - (this.rightPaddle.y + this.rightPaddle.height/2))*0.15; }
-            this.updateAI();
-            if(this.ball.x < -this.ball.size){ if(gameState.aiScored()){ uiManager.showGameOver(false); gameState.endGame(); } else { uiManager.updateScore(); this.resetBall(); } } else if(this.ball.x > this.WIDTH + this.ball.size){ if(gameState.playerScored()){ uiManager.showGameOver(true); gameState.endGame(); } else { uiManager.updateScore(); this.resetBall(); } }
+
+        centerElements() {
+            this.playerPaddle.y = (this.height - this.playerPaddle.height) / 2;
+            this.aiPaddle.y = (this.height - this.aiPaddle.height) / 2;
+            this.ball.x = this.width / 2 - this.ball.size / 2;
+            this.ball.y = this.height / 2 - this.ball.size / 2;
+            this.ball.vx = 0;
+            this.ball.vy = 0;
         }
-        draw(){
-            let isVisible=true; try{ const cs=getComputedStyle(this.canvas); const rect=this.canvas.getBoundingClientRect(); isVisible = rect.width>0 && rect.height>0 && cs.display!=='none' && cs.visibility!=='hidden'; }catch(_){ }
-            if(!isVisible && gameState.currentScreen !== 'game'){ try{ if(window.PongDebug && PongDebug.enabled){ const now=performance.now(); if(now - this._lastDebugTick > 750){ this._lastDebugTick=now; PongDebug.log('draw skipped (canvas not visible)',{screen:gameState.currentScreen,paused:gameState.gamePaused,running:gameState.gameRunning}); PongDebug.dumpScreens(); PongDebug.dumpCanvas(); } } }catch(_){} return; }
-            this.ctx.clearRect(0,0,this.WIDTH,this.HEIGHT);
-            try{ if(window.PongDebug && PongDebug.enabled){ this.ctx.save(); this.ctx.fillStyle='#0f0'; this.ctx.font='12px Courier New'; this.ctx.textAlign='left'; this.ctx.fillText('DRAW',8,16); this.ctx.restore(); } }catch(_){ }
-            this.ctx.strokeStyle="#333"; this.ctx.lineWidth=2; this.ctx.setLineDash([10,10]); this.ctx.beginPath(); this.ctx.moveTo(this.WIDTH/2,0); this.ctx.lineTo(this.WIDTH/2,this.HEIGHT); this.ctx.stroke(); this.ctx.setLineDash([]);
-            this.ctx.fillStyle="#fff"; this.ctx.fillRect(this.leftPaddle.x,this.leftPaddle.y,this.leftPaddle.width,this.leftPaddle.height); this.ctx.fillRect(this.rightPaddle.x,this.rightPaddle.y,this.rightPaddle.width,this.rightPaddle.height);
-            this.ctx.beginPath(); this.ctx.arc(this.ball.x + this.ball.size/2, this.ball.y + this.ball.size/2, this.ball.size/2, 0, Math.PI*2); this.ctx.fillStyle="#fff"; this.ctx.fill();
-            if(gameState.gamePaused){ this.ctx.fillStyle='rgba(255,255,255,0.8)'; this.ctx.font='48px Courier New'; this.ctx.textAlign='center'; this.ctx.fillText('PAUSED', this.WIDTH/2, this.HEIGHT/2); }
-            try{ if(window.PongDebug && PongDebug.enabled){ const now=performance.now(); if(now - this._lastDebugTick > 1000){ this._lastDebugTick=now; PongDebug.log('draw tick',{ screen:gameState.currentScreen, paused:gameState.gamePaused, running:gameState.gameRunning, ball:{x:Math.round(this.ball.x),y:Math.round(this.ball.y),vx:+this.ball.vx.toFixed(2),vy:+this.ball.vy.toFixed(2)}, lp:{y:Math.round(this.leftPaddle.y)}, rp:{y:Math.round(this.rightPaddle.y)} }); } } }catch(_){ }
+
+        bindControls() {
+            this.canvas.addEventListener("mousemove", (event) => {
+                const rect = this.canvas.getBoundingClientRect();
+                const scale = this.canvas.height / rect.height;
+                this.mouseControl = true;
+                this.playerPaddle.y = (event.clientY - rect.top) * scale - this.playerPaddle.height / 2;
+                this.clampPaddle(this.playerPaddle);
+            });
+
+            this.canvas.addEventListener("touchmove", (event) => {
+                event.preventDefault();
+                if (!event.touches.length) return;
+                const rect = this.canvas.getBoundingClientRect();
+                const scale = this.canvas.height / rect.height;
+                this.mouseControl = true;
+                const touch = event.touches[0];
+                this.playerPaddle.y = (touch.clientY - rect.top) * scale - this.playerPaddle.height / 2;
+                this.clampPaddle(this.playerPaddle);
+            }, { passive: false });
+
+            document.addEventListener("keydown", (event) => {
+                if (["ArrowUp", "KeyW"].includes(event.code)) {
+                    this.mouseControl = false;
+                    this.keys.add("up");
+                } else if (["ArrowDown", "KeyS"].includes(event.code)) {
+                    this.mouseControl = false;
+                    this.keys.add("down");
+                }
+            });
+
+            document.addEventListener("keyup", (event) => {
+                if (["ArrowUp", "KeyW"].includes(event.code)) {
+                    this.keys.delete("up");
+                } else if (["ArrowDown", "KeyS"].includes(event.code)) {
+                    this.keys.delete("down");
+                }
+            });
         }
-        gameLoop(){ this.update(); this.draw(); requestAnimationFrame(()=>this.gameLoop()); }
-        start(){ this.setupGameObjects(); }
+
+        clampPaddle(paddle) {
+            if (paddle.y < 0) paddle.y = 0;
+            if (paddle.y + paddle.height > this.height) paddle.y = this.height - paddle.height;
+        }
+
+        startMatch() {
+            this.centerElements();
+            this.serveBall();
+        }
+
+        serveBall(direction) {
+            const settings = this.app.state.getDifficultySettings();
+            const dir = typeof direction === "number" ? Math.sign(direction) || 1 : (Math.random() > 0.5 ? 1 : -1);
+            const angle = (Math.random() * Math.PI / 3) - (Math.PI / 6);
+            const speed = this.baseBallSpeed * settings.ballSpeed;
+
+            this.ball.x = this.width / 2 - this.ball.size / 2;
+            this.ball.y = this.height / 2 - this.ball.size / 2;
+            this.ball.vx = Math.cos(angle) * speed * dir;
+            this.ball.vy = Math.sin(angle) * speed;
+        }
+
+        onMatchFinished() {
+            this.centerElements();
+        }
+
+        loop(timestamp) {
+            if (!this.lastTimestamp) this.lastTimestamp = timestamp;
+            const delta = (timestamp - this.lastTimestamp) / 1000;
+            this.lastTimestamp = timestamp;
+
+            this.update(delta);
+            this.draw();
+            requestAnimationFrame((ts) => this.loop(ts));
+        }
+
+        update(delta) {
+            if (this.app.state.running && !this.app.state.paused) {
+                if (!this.mouseControl) {
+                    let dir = 0;
+                    if (this.keys.has("up")) dir -= 1;
+                    if (this.keys.has("down")) dir += 1;
+                    if (dir !== 0) {
+                        this.playerPaddle.y += dir * this.playerSpeed * delta;
+                        this.clampPaddle(this.playerPaddle);
+                    }
+                }
+
+                this.ball.x += this.ball.vx * delta;
+                this.ball.y += this.ball.vy * delta;
+
+                if (this.ball.y <= 0) {
+                    this.ball.y = 0;
+                    this.ball.vy *= -1;
+                } else if (this.ball.y + this.ball.size >= this.height) {
+                    this.ball.y = this.height - this.ball.size;
+                    this.ball.vy *= -1;
+                }
+
+                this.checkPaddleCollision(this.playerPaddle, true);
+                this.checkPaddleCollision(this.aiPaddle, false);
+
+                this.updateAI(delta);
+
+                if (this.ball.x + this.ball.size < 0) {
+                    this.app.onPoint("ai");
+                    return;
+                }
+                if (this.ball.x > this.width) {
+                    this.app.onPoint("player");
+                    return;
+                }
+            } else if (!this.app.state.running) {
+                this.ball.vx = 0;
+                this.ball.vy = 0;
+            }
+        }
+
+        checkPaddleCollision(paddle, isPlayer) {
+            const ballLeft = this.ball.x;
+            const ballRight = this.ball.x + this.ball.size;
+            const ballTop = this.ball.y;
+            const ballBottom = this.ball.y + this.ball.size;
+
+            const paddleLeft = paddle.x;
+            const paddleRight = paddle.x + paddle.width;
+            const paddleTop = paddle.y;
+            const paddleBottom = paddle.y + paddle.height;
+
+            const intersects = !(ballRight < paddleLeft || ballLeft > paddleRight || ballBottom < paddleTop || ballTop > paddleBottom);
+            if (!intersects) return;
+
+            const movingToward = isPlayer ? this.ball.vx < 0 : this.ball.vx > 0;
+            if (!movingToward) return;
+
+            const settings = this.app.state.getDifficultySettings();
+            const paddleCenter = paddle.y + paddle.height / 2;
+            const ballCenter = this.ball.y + this.ball.size / 2;
+            const relative = (ballCenter - paddleCenter) / (paddle.height / 2);
+            const clamped = Math.max(-1, Math.min(1, relative));
+            const bounceAngle = clamped * (Math.PI / 3);
+
+            const speed = Math.hypot(this.ball.vx, this.ball.vy);
+            const speedBoost = Math.min(this.baseBallSpeed * 1.4, speed + this.baseBallAccel * settings.ballAccel);
+            const direction = isPlayer ? 1 : -1;
+
+            this.ball.vx = Math.cos(bounceAngle) * speedBoost * direction;
+            this.ball.vy = Math.sin(bounceAngle) * speedBoost;
+
+            if (isPlayer) {
+                this.ball.x = paddleRight;
+            } else {
+                this.ball.x = paddleLeft - this.ball.size;
+            }
+        }
+
+        updateAI(delta) {
+            const settings = this.app.state.getDifficultySettings();
+            const aiSpeed = this.aiBaseSpeed * settings.aiSpeed;
+            const aiError = this.aiBaseError * settings.aiError;
+
+            const ballCenter = this.ball.y + this.ball.size / 2;
+            const target = ballCenter - this.aiPaddle.height / 2 + (Math.random() - 0.5) * aiError;
+            const diff = target - this.aiPaddle.y;
+            const maxStep = aiSpeed * delta;
+
+            if (Math.abs(diff) <= maxStep) {
+                this.aiPaddle.y = target;
+            } else {
+                this.aiPaddle.y += diff > 0 ? maxStep : -maxStep;
+            }
+
+            this.clampPaddle(this.aiPaddle);
+        }
+
+        draw() {
+            const ctx = this.ctx;
+            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+            ctx.fillStyle = "#111";
+            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            ctx.strokeStyle = "#333";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([16, 16]);
+            ctx.beginPath();
+            ctx.moveTo(this.canvas.width / 2, 0);
+            ctx.lineTo(this.canvas.width / 2, this.canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(this.playerPaddle.x, this.playerPaddle.y, this.playerPaddle.width, this.playerPaddle.height);
+            ctx.fillRect(this.aiPaddle.x, this.aiPaddle.y, this.aiPaddle.width, this.aiPaddle.height);
+
+            ctx.beginPath();
+            ctx.arc(this.ball.x + this.ball.size / 2, this.ball.y + this.ball.size / 2, this.ball.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (this.app.state.paused) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+                ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                ctx.fillStyle = "#fff";
+                ctx.font = `${Math.round(this.canvas.height * 0.08)}px "Courier New", monospace`;
+                ctx.textAlign = "center";
+                ctx.fillText("PAUSED", this.canvas.width / 2, this.canvas.height / 2);
+            } else if (!this.app.state.running) {
+                ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+                ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                ctx.fillStyle = "#fff";
+                ctx.font = `${Math.round(this.canvas.height * 0.05)}px "Courier New", monospace`;
+                ctx.textAlign = "center";
+                ctx.fillText("Press START to Play", this.canvas.width / 2, this.canvas.height / 2);
+            }
+        }
     }
-    window.addEventListener('DOMContentLoaded',()=>{ window.game = new PongGame(); });
+
+    class App {
+        constructor() {
+            this.storage = new StorageHelper();
+            this.state = new GameState();
+            this.stats = new StatsManager(this.storage);
+            this.ui = new UIManager(this);
+            this.game = new PongGame(this);
+            this.ui.updateHUD(this.state);
+        }
+
+        startMatch() {
+            this.state.startMatch();
+            this.ui.updateHUD(this.state);
+            this.ui.showGameScreen();
+            this.game.startMatch();
+        }
+
+        onPoint(who) {
+            if (!this.state.running) return;
+            const finished = this.state.registerPoint(who);
+            this.ui.updateHUD(this.state);
+
+            if (finished) {
+                const playerWon = this.state.playerScore > this.state.aiScore;
+                this.state.finishMatch();
+                this.stats.recordGame({
+                    difficulty: this.state.difficulty,
+                    scoreLimit: this.state.scoreLimit,
+                    playerScore: this.state.playerScore,
+                    aiScore: this.state.aiScore,
+                    playerWon,
+                    duration: this.state.getDuration()
+                });
+                this.game.onMatchFinished();
+                this.ui.showGameOver(playerWon, this.state);
+            } else {
+                this.game.serveBall(who === "player" ? -1 : 1);
+            }
+        }
+
+        pauseMatch() {
+            if (!this.state.running || this.state.paused) return;
+            this.state.paused = true;
+            this.ui.showPauseScreen();
+        }
+
+        resumeMatch() {
+            if (!this.state.paused) return;
+            this.state.paused = false;
+            this.ui.showGameScreen();
+        }
+
+        quitToMenu() {
+            if (this.state.running) {
+                this.state.finishMatch();
+            }
+            this.state.paused = false;
+            this.state.playerScore = 0;
+            this.state.aiScore = 0;
+            this.game.onMatchFinished();
+            this.ui.updateHUD(this.state);
+            this.ui.showSetup();
+        }
+
+        showStats() {
+            this.ui.populateStats(this.stats.stats);
+            this.ui.showStatsScreen();
+        }
+
+        updateSettings({ difficulty, scoreLimit }) {
+            if (difficulty) this.state.applyDifficulty(difficulty);
+            if (scoreLimit) this.state.applyScoreLimit(scoreLimit);
+            this.ui.updateHUD(this.state);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        window.enhancedPong = new App();
+    });
+    })();
     </script>
 </body>
 </html>
