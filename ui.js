@@ -4,6 +4,14 @@ class UIManager {
         this.currentScreen = 'setup';
         this.setupEventListeners();
         this.showScreen('setup'); // Ensure we start on setup screen
+        // Initial debug snapshot
+        try {
+            if (window.PongDebug && PongDebug.enabled) {
+                PongDebug.log('UIManager initialized');
+                PongDebug.dumpScreens();
+                PongDebug.dumpCanvas();
+            }
+        } catch (_) {}
     }
 
     setupEventListeners() {
@@ -91,6 +99,12 @@ class UIManager {
             targetScreen.classList.remove('hidden');
             this.currentScreen = screenName;
             gameState.currentScreen = screenName;
+            try {
+                if (window.PongDebug && PongDebug.enabled) {
+                    PongDebug.log('showScreen ->', screenName);
+                    PongDebug.dumpScreens();
+                }
+            } catch (_) {}
         }
     }
 
@@ -101,6 +115,7 @@ class UIManager {
         if (window.game) {
             window.game.start();
         }
+        try { if (window.PongDebug && PongDebug.enabled) PongDebug.log('startGame'); } catch (_) {}
     }
 
     pauseGame() {
@@ -108,17 +123,20 @@ class UIManager {
         if (gameState.gamePaused) {
             this.showScreen('pause');
         }
+        try { if (window.PongDebug && PongDebug.enabled) PongDebug.log('pauseGame ->', gameState.gamePaused); } catch (_) {}
     }
 
     resumeGame() {
         gameState.togglePause();
         this.showScreen('game');
+        try { if (window.PongDebug && PongDebug.enabled) PongDebug.log('resumeGame'); } catch (_) {}
     }
 
     quitGame() {
         gameState.gameRunning = false;
         gameState.gamePaused = false;
         this.showScreen('setup');
+        try { if (window.PongDebug && PongDebug.enabled) PongDebug.log('quitGame'); } catch (_) {}
     }
 
     showGameOver(playerWon) {
@@ -135,18 +153,21 @@ class UIManager {
         `;
         
         this.showScreen('gameOver');
+        try { if (window.PongDebug && PongDebug.enabled) PongDebug.log('showGameOver', { playerWon, p: gameState.playerScore, a: gameState.aiScore }); } catch (_) {}
     }
 
     showStats() {
         const statsContent = document.getElementById('statsContent');
         statsContent.innerHTML = statsManager.getStatsHTML();
         this.showScreen('stats');
+        try { if (window.PongDebug && PongDebug.enabled) PongDebug.log('showStats'); } catch (_) {}
     }
 
     showSetupScreen() {
         gameState.gameRunning = false;
         gameState.gamePaused = false;
         this.showScreen('setup');
+        try { if (window.PongDebug && PongDebug.enabled) PongDebug.log('showSetupScreen'); } catch (_) {}
     }
 
     updateGameUI() {
@@ -159,6 +180,7 @@ class UIManager {
 
     updateScore() {
         this.updateGameUI();
+        try { if (window.PongDebug && PongDebug.enabled) PongDebug.log('updateScore', { p: gameState.playerScore, a: gameState.aiScore }); } catch (_) {}
     }
 }
 

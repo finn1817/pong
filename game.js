@@ -4,6 +4,7 @@ class PongGame {
         this.ctx = this.canvas.getContext('2d');
         this.WIDTH = this.canvas.width;
         this.HEIGHT = this.canvas.height;
+        this._lastDebugTick = 0;
 
         // Paddle settings
         this.PADDLE_WIDTH = 12;
@@ -15,6 +16,7 @@ class PongGame {
 
         this.setupGameObjects();
         this.setupControls();
+        try { if (window.PongDebug && PongDebug.enabled) { PongDebug.log('PongGame initialized', { width: this.WIDTH, height: this.HEIGHT }); PongDebug.dumpCanvas(); } } catch (_) {}
         this.gameLoop();
     }
 
@@ -187,7 +189,20 @@ class PongGame {
 
     draw() {
         // Only draw if canvas is visible
-        if (gameState.currentScreen !== 'game') return;
+        if (gameState.currentScreen !== 'game') {
+            // Periodically report if we're skipping draws due to screen state
+            try {
+                if (window.PongDebug && PongDebug.enabled) {
+                    const now = performance.now();
+                    if (now - this._lastDebugTick > 750) {
+                        this._lastDebugTick = now;
+                        PongDebug.log('draw skipped', { screen: gameState.currentScreen, paused: gameState.gamePaused, running: gameState.gameRunning });
+                        PongDebug.dumpScreens();
+                    }
+                }
+            } catch (_) {}
+            return;
+        }
 
         this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
 
@@ -219,6 +234,24 @@ class PongGame {
             this.ctx.textAlign = "center";
             this.ctx.fillText("PAUSED", this.WIDTH / 2, this.HEIGHT / 2);
         }
+
+        // Periodic debug snapshot of dynamic values
+        try {
+            if (window.PongDebug && PongDebug.enabled) {
+                const now = performance.now();
+                if (now - this._lastDebugTick > 1000) {
+                    this._lastDebugTick = now;
+                    PongDebug.log('draw tick', {
+                        screen: gameState.currentScreen,
+                        paused: gameState.gamePaused,
+                        running: gameState.gameRunning,
+                        ball: { x: Math.round(this.ball.x), y: Math.round(this.ball.y), vx: +this.ball.vx.toFixed(2), vy: +this.ball.vy.toFixed(2) },
+                        lp: { y: Math.round(this.leftPaddle.y) },
+                        rp: { y: Math.round(this.rightPaddle.y) }
+                    });
+                }
+            }
+        } catch (_) {}
     }
 
     gameLoop() {
