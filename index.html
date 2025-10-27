@@ -11,12 +11,18 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
         body {
             font-family: 'Courier New', monospace;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: #fff;
             overflow: hidden;
-            height: 100vh;
+            height: 100svh; /* use small viewport to avoid browser UI overlap */
+            min-height: 100vh; /* fallback */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -36,7 +42,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 0; /* avoid vertical clipping on small viewports */
         }
 
         .screen.hidden {
@@ -140,13 +146,14 @@
             height: 100%;
             display: flex;
             flex-direction: column;
+            min-height: 0; /* allow canvas to shrink inside flex container */
         }
 
         .game-hud {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 2rem;
+            padding: calc(1rem + var(--safe-top)) 2rem 1rem 2rem;
             background: rgba(0, 0, 0, 0.5);
         }
 
@@ -173,6 +180,8 @@
         #pongCanvas {
             flex: 1;
             width: 100%;
+            min-height: 0; /* important for flexbox to prevent overflow */
+            aspect-ratio: 2 / 1; /* keep sensible proportions */
             background: #111;
         }
 
@@ -708,24 +717,27 @@ class PongGame {
     }
 
     resizeCanvas() {
-        const w = Math.max(1, Math.round(this.canvas.clientWidth));
-        const h = Math.max(1, Math.round(this.canvas.clientHeight));
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        const wCss = Math.max(1, Math.round(this.canvas.clientWidth));
+        const hCss = Math.max(1, Math.round(this.canvas.clientHeight));
 
-        const prevWidth = this.width || w;
-        const prevHeight = this.height || h;
+        const prevWidth = this.width || wCss;
+        const prevHeight = this.height || hCss;
 
         const prevPlayerRatio = this.playerPaddle.height ? this.playerPaddle.y / prevHeight : 0.5;
         const prevAiRatio = this.aiPaddle.height ? this.aiPaddle.y / prevHeight : 0.5;
 
-        const prevBallCenterX = (typeof this.ball.x === "number") ? this.ball.x + this.ball.size / 2 : prevWidth / 2;
-        const prevBallCenterY = (typeof this.ball.y === "number") ? this.ball.y + this.ball.size / 2 : prevHeight / 2;
+    const prevBallCenterX = (typeof this.ball.x === "number") ? this.ball.x + this.ball.size / 2 : prevWidth / 2;
+    const prevBallCenterY = (typeof this.ball.y === "number") ? this.ball.y + this.ball.size / 2 : prevHeight / 2;
         const prevBallRatioX = prevWidth ? prevBallCenterX / prevWidth : 0.5;
         const prevBallRatioY = prevHeight ? prevBallCenterY / prevHeight : 0.5;
 
-        this.canvas.width = w;
-        this.canvas.height = h;
-        this.width = w;
-        this.height = h;
+    // HiDPI: set backing store to device pixels and scale context to CSS pixels
+    this.canvas.width = Math.floor(wCss * dpr);
+    this.canvas.height = Math.floor(hCss * dpr);
+    this.width = wCss;
+    this.height = hCss;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         const paddleWidth = Math.max(10, w * 0.015);
         const paddleHeight = Math.max(60, h * 0.22);
@@ -754,11 +766,11 @@ class PongGame {
         this.ball.vx *= scaleX;
         this.ball.vy *= scaleY;
 
-        this.playerSpeed = h * 1.6;
-        this.aiBaseSpeed = h * 1.35;
-        this.aiBaseError = h * 0.18;
-        this.baseBallSpeed = w * 0.75;
-        this.baseBallAccel = w * 0.04;
+    this.playerSpeed = this.height * 1.6;
+    this.aiBaseSpeed = this.height * 1.35;
+    this.aiBaseError = this.height * 0.18;
+    this.baseBallSpeed = this.width * 0.75;
+    this.baseBallAccel = this.width * 0.04;
 
         if (!this.app.state.running) {
             this.centerElements();
@@ -777,7 +789,7 @@ class PongGame {
     bindControls() {
         this.canvas.addEventListener("mousemove", (event) => {
             const rect = this.canvas.getBoundingClientRect();
-            const scale = this.canvas.height / rect.height;
+            const scale = this.height / rect.height; // use logical CSS pixels
             this.mouseControl = true;
             this.playerPaddle.y = (event.clientY - rect.top) * scale - this.playerPaddle.height / 2;
             this.clampPaddle(this.playerPaddle);
@@ -787,7 +799,7 @@ class PongGame {
             event.preventDefault();
             if (!event.touches.length) return;
             const rect = this.canvas.getBoundingClientRect();
-            const scale = this.canvas.height / rect.height;
+            const scale = this.height / rect.height; // use logical CSS pixels
             this.mouseControl = true;
             const touch = event.touches[0];
             this.playerPaddle.y = (touch.clientY - rect.top) * scale - this.playerPaddle.height / 2;
