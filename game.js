@@ -188,16 +188,23 @@ class PongGame {
     }
 
     draw() {
-        // Only draw if canvas is visible
-        if (gameState.currentScreen !== 'game') {
-            // Periodically report if we're skipping draws due to screen state
+        // Only draw if canvas is visible in the DOM. Rely on actual visibility instead of
+        // just the logical screen name to avoid edge cases where state didn't flip.
+        let isVisible = true;
+        try {
+            const cs = getComputedStyle(this.canvas);
+            isVisible = this.canvas.offsetParent !== null && cs.display !== 'none' && cs.visibility !== 'hidden';
+        } catch (_) { /* fallback to true */ }
+
+        if (!isVisible) {
             try {
                 if (window.PongDebug && PongDebug.enabled) {
                     const now = performance.now();
                     if (now - this._lastDebugTick > 750) {
                         this._lastDebugTick = now;
-                        PongDebug.log('draw skipped', { screen: gameState.currentScreen, paused: gameState.gamePaused, running: gameState.gameRunning });
+                        PongDebug.log('draw skipped (canvas not visible)', { screen: gameState.currentScreen, paused: gameState.gamePaused, running: gameState.gameRunning });
                         PongDebug.dumpScreens();
+                        PongDebug.dumpCanvas();
                     }
                 }
             } catch (_) {}

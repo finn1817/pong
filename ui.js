@@ -114,6 +114,8 @@ class UIManager {
         this.showScreen('game');
         if (window.game) {
             window.game.start();
+            // Ensure the first frame renders immediately after showing the screen
+            try { requestAnimationFrame(() => window.game && window.game.draw()); } catch (_) {}
         }
         try { if (window.PongDebug && PongDebug.enabled) PongDebug.log('startGame'); } catch (_) {}
     }
