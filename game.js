@@ -188,12 +188,13 @@ class PongGame {
     }
 
     draw() {
-        // Only draw if canvas is visible in the DOM. Rely on actual visibility instead of
-        // just the logical screen name to avoid edge cases where state didn't flip.
+        // Only draw if canvas is visible in the DOM. Use rect and CSS visibility rather than
+        // offsetParent which can be null in some layouts.
         let isVisible = true;
         try {
             const cs = getComputedStyle(this.canvas);
-            isVisible = this.canvas.offsetParent !== null && cs.display !== 'none' && cs.visibility !== 'hidden';
+            const rect = this.canvas.getBoundingClientRect();
+            isVisible = rect.width > 0 && rect.height > 0 && cs.display !== 'none' && cs.visibility !== 'hidden';
         } catch (_) { /* fallback to true */ }
 
         if (!isVisible) {
