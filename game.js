@@ -186,6 +186,9 @@ class PongGame {
     }
 
     draw() {
+        // Only draw if canvas is visible
+        if (gameState.currentScreen !== 'game') return;
+
         this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
 
         // Draw midline

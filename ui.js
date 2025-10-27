@@ -1,7 +1,9 @@
 // UI management
 class UIManager {
     constructor() {
+        this.currentScreen = 'setup';
         this.setupEventListeners();
+        this.showScreen('setup'); // Ensure we start on setup screen
     }
 
     setupEventListeners() {
@@ -63,14 +65,14 @@ class UIManager {
 
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && gameState.currentScreen === 'game') {
+            if (e.code === 'Space' && this.currentScreen === 'game') {
                 e.preventDefault();
                 this.pauseGame();
             }
             if (e.code === 'Escape') {
-                if (gameState.currentScreen === 'game') {
+                if (this.currentScreen === 'game') {
                     this.pauseGame();
-                } else if (gameState.currentScreen === 'pause') {
+                } else if (this.currentScreen === 'pause') {
                     this.resumeGame();
                 }
             }
@@ -78,11 +80,18 @@ class UIManager {
     }
 
     showScreen(screenName) {
+        // Hide all screens
         document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.add('hidden');
         });
-        document.getElementById(screenName + 'Screen').classList.remove('hidden');
-        gameState.currentScreen = screenName;
+        
+        // Show the requested screen
+        const targetScreen = document.getElementById(screenName + 'Screen');
+        if (targetScreen) {
+            targetScreen.classList.remove('hidden');
+            this.currentScreen = screenName;
+            gameState.currentScreen = screenName;
+        }
     }
 
     startGame() {
@@ -108,6 +117,7 @@ class UIManager {
 
     quitGame() {
         gameState.gameRunning = false;
+        gameState.gamePaused = false;
         this.showScreen('setup');
     }
 
@@ -135,6 +145,7 @@ class UIManager {
 
     showSetupScreen() {
         gameState.gameRunning = false;
+        gameState.gamePaused = false;
         this.showScreen('setup');
     }
 
@@ -151,5 +162,8 @@ class UIManager {
     }
 }
 
-// Global UI manager instance
-const uiManager = new UIManager();
+// Initialize UI manager when DOM loads
+let uiManager;
+document.addEventListener('DOMContentLoaded', () => {
+    uiManager = new UIManager();
+});
