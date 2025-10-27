@@ -114,6 +114,9 @@ class UIManager {
         this.showScreen('game');
         if (window.game) {
             window.game.start();
+            // Always ensure running + unpaused when starting
+            gameState.gamePaused = false;
+            gameState.gameRunning = true;
             // Ensure the first frame renders immediately after showing the screen
             try { requestAnimationFrame(() => window.game && window.game.draw()); } catch (_) {}
         }
@@ -135,7 +138,8 @@ class UIManager {
     }
 
     resumeGame() {
-        gameState.togglePause();
+        // Explicitly unpause rather than toggling to avoid state drift
+        gameState.gamePaused = false;
         this.showScreen('game');
         try { if (window.PongDebug && PongDebug.enabled) PongDebug.log('resumeGame'); } catch (_) {}
     }
