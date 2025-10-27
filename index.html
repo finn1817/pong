@@ -727,17 +727,21 @@ class PongGame {
         const prevPlayerRatio = this.playerPaddle.height ? this.playerPaddle.y / prevHeight : 0.5;
         const prevAiRatio = this.aiPaddle.height ? this.aiPaddle.y / prevHeight : 0.5;
 
-    const prevBallCenterX = (typeof this.ball.x === "number") ? this.ball.x + this.ball.size / 2 : prevWidth / 2;
-    const prevBallCenterY = (typeof this.ball.y === "number") ? this.ball.y + this.ball.size / 2 : prevHeight / 2;
+        const prevBallCenterX = (typeof this.ball.x === "number") ? this.ball.x + this.ball.size / 2 : prevWidth / 2;
+        const prevBallCenterY = (typeof this.ball.y === "number") ? this.ball.y + this.ball.size / 2 : prevHeight / 2;
         const prevBallRatioX = prevWidth ? prevBallCenterX / prevWidth : 0.5;
         const prevBallRatioY = prevHeight ? prevBallCenterY / prevHeight : 0.5;
 
-    // HiDPI: set backing store to device pixels and scale context to CSS pixels
-    this.canvas.width = Math.floor(wCss * dpr);
-    this.canvas.height = Math.floor(hCss * dpr);
-    this.width = wCss;
-    this.height = hCss;
-    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        // HiDPI: set backing store to device pixels and scale context to CSS pixels
+        this.canvas.width = Math.floor(wCss * dpr);
+        this.canvas.height = Math.floor(hCss * dpr);
+        this.width = wCss;
+        this.height = hCss;
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        // Use local w, h for convenience
+        const w = wCss;
+        const h = hCss;
 
         const paddleWidth = Math.max(10, w * 0.015);
         const paddleHeight = Math.max(60, h * 0.22);
