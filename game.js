@@ -197,7 +197,7 @@ class PongGame {
             isVisible = rect.width > 0 && rect.height > 0 && cs.display !== 'none' && cs.visibility !== 'hidden';
         } catch (_) { /* fallback to true */ }
 
-        if (!isVisible) {
+        if (!isVisible && gameState.currentScreen !== 'game') {
             try {
                 if (window.PongDebug && PongDebug.enabled) {
                     const now = performance.now();
