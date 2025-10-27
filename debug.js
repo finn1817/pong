@@ -39,6 +39,33 @@
     return panel;
   }
 
+  function ensureToggleBadge() {
+    // Always show a tiny toggle badge so users can enable debug without URL/keys
+    if (document.getElementById('debugToggleBadge')) return;
+    const badge = document.createElement('button');
+    badge.id = 'debugToggleBadge';
+    badge.textContent = '🐞 Debug';
+    badge.style.position = 'fixed';
+    badge.style.top = '8px';
+    badge.style.right = '8px';
+    badge.style.zIndex = '10000';
+    badge.style.padding = '4px 8px';
+    badge.style.font = '12px monospace';
+    badge.style.background = enabled ? '#093' : '#444';
+    badge.style.color = '#fff';
+    badge.style.border = '1px solid #888';
+    badge.style.borderRadius = '4px';
+    badge.style.cursor = 'pointer';
+    badge.style.opacity = '0.7';
+    badge.style.userSelect = 'none';
+    badge.title = 'Click to toggle debug (Ctrl/Cmd+D also)';
+    badge.addEventListener('mouseenter', () => badge.style.opacity = '1');
+    badge.addEventListener('mouseleave', () => badge.style.opacity = '0.7');
+    badge.addEventListener('click', () => toggle());
+    document.body.appendChild(badge);
+    return badge;
+  }
+
   function appendLine(text) {
     if (!enabled) return;
     ensurePanel();
@@ -110,6 +137,9 @@
       panel = null;
       console.log('[PONG] Debug disabled');
     }
+    // Reflect state on badge color
+    const badge = document.getElementById('debugToggleBadge');
+    if (badge) badge.style.background = enabled ? '#093' : '#444';
   }
 
   function init() {
@@ -117,6 +147,8 @@
     initialized = true;
 
     enabled = isEnabledFromUrlOrStorage();
+    // Badge should exist regardless of enabled state
+    ensureToggleBadge();
     if (enabled) {
       ensurePanel();
       log('Debug auto-enabled');

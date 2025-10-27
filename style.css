@@ -12,10 +12,16 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    display: flex;
+    /* Default to hidden: only explicitly shown screens are displayed */
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 1;
+}
+
+/* Show any screen not marked as hidden */
+.screen:not(.hidden) {
+    display: flex !important;
 }
 
 .hidden {
