@@ -2,11 +2,93 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Simple Pong Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Pong Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="pongCanvas" width="800" height="400"></canvas>
+    <!-- Game Setup Screen -->
+    <div id="setupScreen" class="screen">
+        <div class="setup-container">
+            <h1>PONG</h1>
+            <div class="setup-options">
+                <div class="option-group">
+                    <label>Difficulty:</label>
+                    <div class="difficulty-buttons">
+                        <button id="easyBtn" class="difficulty-btn active" data-difficulty="easy">Easy</button>
+                        <button id="mediumBtn" class="difficulty-btn" data-difficulty="medium">Medium</button>
+                        <button id="hardBtn" class="difficulty-btn" data-difficulty="hard">Hard</button>
+                    </div>
+                </div>
+                <div class="option-group">
+                    <label for="scoreLimit">Score to Win:</label>
+                    <select id="scoreLimit">
+                        <option value="5">5 Points</option>
+                        <option value="10" selected>10 Points</option>
+                        <option value="15">15 Points</option>
+                        <option value="21">21 Points</option>
+                    </select>
+                </div>
+                <button id="startGameBtn" class="start-btn">Start Game</button>
+                <button id="viewStatsBtn" class="stats-btn">View Stats</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen hidden">
+        <div class="game-ui">
+            <div class="score-display">
+                <span id="playerScore">0</span>
+                <span class="separator">-</span>
+                <span id="aiScore">0</span>
+            </div>
+            <div class="game-info">
+                <span id="difficultyDisplay">Easy</span> | <span id="scoreLimitDisplay">10</span> to win
+            </div>
+        </div>
+        <canvas id="pongCanvas" width="800" height="400"></canvas>
+        <div class="controls">
+            <button id="pauseBtn" class="control-btn">Pause</button>
+            <button id="quitBtn" class="control-btn">Quit</button>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" class="screen hidden">
+        <div class="gameover-container">
+            <h2 id="gameOverTitle">Game Over</h2>
+            <div id="finalScore" class="final-score"></div>
+            <div class="gameover-buttons">
+                <button id="playAgainBtn" class="game-btn">Play Again</button>
+                <button id="mainMenuBtn" class="game-btn">Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Screen -->
+    <div id="statsScreen" class="screen hidden">
+        <div class="stats-container">
+            <h2>Statistics</h2>
+            <div id="statsContent" class="stats-content"></div>
+            <button id="backToMenuBtn" class="game-btn">Back to Menu</button>
+        </div>
+    </div>
+
+    <!-- Pause Screen -->
+    <div id="pauseScreen" class="screen hidden">
+        <div class="pause-container">
+            <h2>Game Paused</h2>
+            <div class="pause-buttons">
+                <button id="resumeBtn" class="game-btn">Resume</button>
+                <button id="pauseQuitBtn" class="game-btn">Quit to Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="gameState.js"></script>
+    <script src="stats.js"></script>
+    <script src="ui.js"></script>
     <script src="game.js"></script>
 </body>
 </html>
