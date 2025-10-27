@@ -157,6 +157,13 @@ body {
     display: block;
     box-shadow: 0 0 20px #000;
     border-radius: 8px;
+    /* Ensure the canvas has non-zero CSS size in flex layout (desktop too) */
+    width: 80vw;
+    height: 40vw;
+    max-width: 960px;
+    max-height: 480px;
+    min-width: 600px;
+    min-height: 300px;
 }
 
 .controls {
