@@ -5,1109 +5,1068 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enhanced Pong Game</title>
     <style>
-    * {
-        box-sizing: border-box;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-        background: #222;
-        margin: 0;
-        font-family: "Courier New", monospace;
-        color: #fff;
-        overflow: hidden;
-    }
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-    .screen {
-        position: fixed;
-        inset: 0;
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 1;
-        padding: 20px;
-    }
+        #app {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
 
-    .screen:not(.hidden) {
-        display: flex;
-    }
+        .screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-    .hidden {
-        display: none !important;
-    }
+        .screen.hidden {
+            display: none;
+        }
 
-    .setup-container,
-    .gameover-container,
-    .stats-container,
-    .pause-container {
-        text-align: center;
-        background: #333;
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-        max-width: 480px;
-        width: 100%;
-    }
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
 
-    .setup-container h1 {
-        font-size: clamp(2.5rem, 8vw, 4rem);
-        margin: 0 0 30px 0;
-        color: #fff;
-        text-shadow: 0 0 14px rgba(255, 255, 255, 0.25);
-    }
+        .menu-section {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            min-width: 300px;
+        }
 
-    .setup-options {
-        display: flex;
-        flex-direction: column;
-        gap: 28px;
-        align-items: center;
-    }
+        .menu-section h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
 
-    .option-group {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        align-items: center;
-    }
-
-    .option-group label {
-        font-size: 1.1rem;
-        font-weight: bold;
-    }
-
-    .difficulty-buttons {
-        display: flex;
-        gap: 14px;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .difficulty-btn,
-    .start-btn,
-    .stats-btn,
-    .game-btn,
-    .control-btn {
-        padding: 12px 26px;
-        background: #444;
-        color: #fff;
-        border: 2px solid transparent;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 1rem;
-        font-family: inherit;
-        transition: all 0.25s ease;
-    }
-
-    .difficulty-btn:hover,
-    .start-btn:hover,
-    .stats-btn:hover,
-    .game-btn:hover,
-    .control-btn:hover {
-        background: #555;
-    }
-
-    .difficulty-btn.active {
-        background: #0a84ff;
-        border-color: #0a84ff;
-    }
-
-    .start-btn,
-    .control-btn {
-        background: #0a84ff;
-    }
-
-    .start-btn:hover,
-    .control-btn:hover {
-        background: #006ad1;
-    }
-
-    .stats-btn {
-        background: #666;
-    }
-
-    .stats-btn:hover {
-        background: #777;
-    }
-
-    #scoreLimit {
-        padding: 10px 14px;
-        background: #444;
-        color: #fff;
-        border: 2px solid #666;
-        border-radius: 8px;
-        font-size: 1rem;
-        font-family: inherit;
-    }
-
-    #gameScreen {
-        flex-direction: column;
-        gap: 22px;
-        padding: 20px;
-        align-items: center;
-    }
-
-    .game-ui {
-        text-align: center;
-    }
-
-    .score-display {
-        font-size: clamp(2.5rem, 6vw, 4rem);
-        font-weight: bold;
-        margin-bottom: 8px;
-    }
-
-    .separator {
-        margin: 0 14px;
-        opacity: 0.6;
-    }
-
-    .game-info {
-        font-size: 1.1rem;
-        opacity: 0.8;
-    }
-
-    #pongCanvas {
-        background: #111;
-        display: block;
-        box-shadow: 0 0 22px #000;
-        border-radius: 10px;
-        width: min(90vw, 960px);
-        height: min(50vw, 540px);
-        max-width: 960px;
-        max-height: 540px;
-        min-width: 280px;
-        min-height: 180px;
-    }
-
-    .controls {
-        display: flex;
-        gap: 16px;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .gameover-container h2,
-    .stats-container h2,
-    .pause-container h2 {
-        font-size: clamp(1.8rem, 4vw, 2.6rem);
-        margin: 0 0 16px 0;
-    }
-
-    .final-score {
-        font-size: 1.2rem;
-        margin: 16px 0;
-        line-height: 1.6;
-    }
-
-    .gameover-buttons,
-    .pause-buttons {
-        display: flex;
-        gap: 14px;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 24px;
-    }
-
-    .stats-content {
-        text-align: left;
-        margin: 24px 0;
-        font-size: 1.05rem;
-        max-height: 360px;
-        overflow-y: auto;
-        padding-right: 6px;
-    }
-
-    .stats-content .stat-card {
-        margin: 10px 0;
-        padding: 12px;
-        background: #444;
-        border-radius: 6px;
-    }
-
-    .stats-content .stats-subheading {
-        margin: 18px 0 8px;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #9ecbff;
-    }
-
-    .stats-content::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .stats-content::-webkit-scrollbar-thumb {
-        background: #555;
-        border-radius: 4px;
-    }
-
-    @media (max-width: 900px) {
         .difficulty-buttons {
-            gap: 10px;
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-btn {
+            flex: 1;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .difficulty-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .difficulty-btn.active {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+        }
+
+        select option {
+            background: #1e3c72;
+            color: #fff;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            margin: 0.5rem;
+            background: #4CAF50;
+            border: none;
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #gameScreen {
+            padding: 0;
+        }
+
+        .game-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .score {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .game-info {
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .game-controls button {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
         }
 
         #pongCanvas {
-            width: 94vw;
-            height: 55vw;
-            min-width: 240px;
-            min-height: 160px;
+            flex: 1;
+            width: 100%;
+            background: #111;
         }
 
-        .gameover-buttons,
-        .pause-buttons {
-            flex-direction: column;
-            gap: 10px;
+        .stats-content {
+            max-width: 600px;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 1rem;
         }
-    }
 
-    @media (max-width: 600px) {
-        .setup-container,
-        .gameover-container,
-        .stats-container,
-        .pause-container {
-            padding: 28px 20px;
+        .stat-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
         }
-    }
+
+        .stats-subheading {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #4CAF50;
+        }
+
+        #gameOverTitle {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        #finalScore {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .menu-section {
+                min-width: auto;
+                width: 90%;
+            }
+
+            .difficulty-buttons {
+                flex-direction: column;
+            }
+
+            .game-hud {
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 0.5rem;
+            }
+
+            .score {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <div id="setupScreen" class="screen">
-        <div class="setup-container">
+    <div id="app">
+        <!-- Setup Screen -->
+        <div id="setupScreen" class="screen">
             <h1>PONG</h1>
-            <div class="setup-options">
-                <div class="option-group">
-                    <label>Difficulty:</label>
-                    <div class="difficulty-buttons">
-                        <button class="difficulty-btn active" data-difficulty="easy">Easy</button>
-                        <button class="difficulty-btn" data-difficulty="medium">Medium</button>
-                        <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+            <div class="menu-section">
+                <h3>Difficulty:</h3>
+                <div class="difficulty-buttons">
+                    <button class="difficulty-btn" data-difficulty="easy">Easy</button>
+                    <button class="difficulty-btn" data-difficulty="medium">Medium</button>
+                    <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+                </div>
+            </div>
+            <div class="menu-section">
+                <h3>Score to Win:</h3>
+                <select id="scoreLimit">
+                    <option value="5">5 Points</option>
+                    <option value="10" selected>10 Points</option>
+                    <option value="15">15 Points</option>
+                    <option value="21">21 Points</option>
+                </select>
+            </div>
+            <button id="startGameBtn" class="btn">Start Game</button>
+            <button id="viewStatsBtn" class="btn btn-secondary">View Stats</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen hidden">
+            <div class="game-container">
+                <div class="game-hud">
+                    <div class="score"><span id="playerScore">0</span></div>
+                    <div class="game-info">
+                        <div><span id="difficultyDisplay">Easy</span> | <span id="scoreLimitDisplay">10</span> to win</div>
+                    </div>
+                    <div class="score"><span id="aiScore">0</span></div>
+                </div>
+                <canvas id="pongCanvas"></canvas>
+                <div class="game-hud">
+                    <div class="game-controls">
+                        <button id="pauseBtn" class="btn btn-secondary">Pause</button>
+                        <button id="quitBtn" class="btn btn-secondary">Quit</button>
                     </div>
                 </div>
-                <div class="option-group">
-                    <label for="scoreLimit">Score to Win:</label>
-                    <select id="scoreLimit">
-                        <option value="5">5 Points</option>
-                        <option value="10" selected>10 Points</option>
-                        <option value="15">15 Points</option>
-                        <option value="21">21 Points</option>
-                    </select>
-                </div>
-                <button id="startGameBtn" class="start-btn">Start Game</button>
-                <button id="viewStatsBtn" class="stats-btn">View Stats</button>
             </div>
         </div>
-    </div>
 
-    <div id="gameScreen" class="screen hidden">
-        <div class="game-ui">
-            <div class="score-display">
-                <span id="playerScore">0</span>
-                <span class="separator">-</span>
-                <span id="aiScore">0</span>
-            </div>
-            <div class="game-info">
-                <span id="difficultyDisplay">Easy</span> | <span id="scoreLimitDisplay">10</span> to win
-            </div>
-        </div>
-        <canvas id="pongCanvas"></canvas>
-        <div class="controls">
-            <button id="pauseBtn" class="control-btn">Pause</button>
-            <button id="quitBtn" class="control-btn">Quit</button>
-        </div>
-    </div>
-
-    <div id="gameOverScreen" class="screen hidden">
-        <div class="gameover-container">
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="screen hidden">
             <h2 id="gameOverTitle">Game Over</h2>
-            <div id="finalScore" class="final-score"></div>
-            <div class="gameover-buttons">
-                <button id="playAgainBtn" class="game-btn">Play Again</button>
-                <button id="mainMenuBtn" class="game-btn">Main Menu</button>
-            </div>
+            <div id="finalScore"></div>
+            <button id="playAgainBtn" class="btn">Play Again</button>
+            <button id="mainMenuBtn" class="btn btn-secondary">Main Menu</button>
         </div>
-    </div>
 
-    <div id="statsScreen" class="screen hidden">
-        <div class="stats-container">
+        <!-- Statistics Screen -->
+        <div id="statsScreen" class="screen hidden">
             <h2>Statistics</h2>
             <div id="statsContent" class="stats-content"></div>
-            <button id="backToMenuBtn" class="game-btn">Back to Menu</button>
+            <button id="backToMenuBtn" class="btn">Back to Menu</button>
         </div>
-    </div>
 
-    <div id="pauseScreen" class="screen hidden">
-        <div class="pause-container">
+        <!-- Pause Screen -->
+        <div id="pauseScreen" class="screen hidden">
             <h2>Game Paused</h2>
-            <div class="pause-buttons">
-                <button id="resumeBtn" class="game-btn">Resume</button>
-                <button id="pauseQuitBtn" class="game-btn">Quit to Menu</button>
-            </div>
+            <button id="resumeBtn" class="btn">Resume</button>
+            <button id="pauseQuitBtn" class="btn btn-secondary">Quit to Menu</button>
         </div>
     </div>
 
-    <script>
-    (() => {
-    "use strict";
+<script>
+(() => {
+"use strict";
 
-    const difficultySettings = {
-        easy:   { aiSpeed: 0.75, aiError: 1.40, ballSpeed: 0.85, ballAccel: 0.85 },
-        medium: { aiSpeed: 1.00, aiError: 1.00, ballSpeed: 1.00, ballAccel: 1.00 },
-        hard:   { aiSpeed: 1.25, aiError: 0.60, ballSpeed: 1.15, ballAccel: 1.10 }
-    };
+const difficultySettings = {
+    easy:   { aiSpeed: 0.75, aiError: 1.40, ballSpeed: 0.85, ballAccel: 0.85 },
+    medium: { aiSpeed: 1.00, aiError: 1.00, ballSpeed: 1.00, ballAccel: 1.00 },
+    hard:   { aiSpeed: 1.25, aiError: 0.60, ballSpeed: 1.15, ballAccel: 1.10 }
+};
 
-    const defaultStats = () => ({
-        gamesPlayed: 0,
-        gamesWon: 0,
-        gamesLost: 0,
-        totalPlayTime: 0,
-        bestWinStreak: 0,
-        currentWinStreak: 0,
-        difficulty: {
-            easy:   { played: 0, won: 0 },
-            medium: { played: 0, won: 0 },
-            hard:   { played: 0, won: 0 }
-        },
-        scoreLimit: {
-            5:  { played: 0, won: 0 },
-            10: { played: 0, won: 0 },
-            15: { played: 0, won: 0 },
-            21: { played: 0, won: 0 }
-        }
-    });
+const defaultStats = () => ({
+    gamesPlayed: 0,
+    gamesWon: 0,
+    gamesLost: 0,
+    totalPlayTime: 0,
+    bestWinStreak: 0,
+    currentWinStreak: 0,
+    difficulty: {
+        easy:   { played: 0, won: 0 },
+        medium: { played: 0, won: 0 },
+        hard:   { played: 0, won: 0 }
+    },
+    scoreLimit: {
+        5:  { played: 0, won: 0 },
+        10: { played: 0, won: 0 },
+        15: { played: 0, won: 0 },
+        21: { played: 0, won: 0 }
+    }
+});
 
-    class StorageHelper {
-        constructor() {
-            this.enabled = true;
-            try {
-                const key = "__pong_storage_test__";
-                window.localStorage.setItem(key, "1");
-                window.localStorage.removeItem(key);
-            } catch (err) {
-                this.enabled = false;
-                console.warn("[PONG] LocalStorage unavailable. Stats will not persist.", err);
-            }
-        }
-        get(key) {
-            if (!this.enabled) return null;
-            try {
-                return window.localStorage.getItem(key);
-            } catch (err) {
-                console.warn("[PONG] Failed to read from LocalStorage.", err);
-                return null;
-            }
-        }
-        set(key, value) {
-            if (!this.enabled) return;
-            try {
-                window.localStorage.setItem(key, value);
-            } catch (err) {
-                console.warn("[PONG] Failed to write to LocalStorage.", err);
-            }
+class StorageHelper {
+    constructor() {
+        this.enabled = true;
+        try {
+            const key = "__pong_storage_test__";
+            window.localStorage.setItem(key, "1");
+            window.localStorage.removeItem(key);
+        } catch (err) {
+            this.enabled = false;
+            console.warn("[PONG] LocalStorage unavailable. Stats will not persist.", err);
         }
     }
-
-    class StatsManager {
-        constructor(storage) {
-            this.storage = storage;
-            this.storageKey = "enhancedPongStats";
-            this.stats = this.load() ?? defaultStats();
+    get(key) {
+        if (!this.enabled) return null;
+        try {
+            return window.localStorage.getItem(key);
+        } catch (err) {
+            console.warn("[PONG] Failed to read from LocalStorage.", err);
+            return null;
         }
-
-        load() {
-            const raw = this.storage.get(this.storageKey);
-            if (!raw) return null;
-            try {
-                const parsed = JSON.parse(raw);
-                const base = defaultStats();
-                return {
-                    ...base,
-                    ...parsed,
-                    difficulty: { ...base.difficulty, ...(parsed.difficulty || {}) },
-                    scoreLimit: { ...base.scoreLimit, ...(parsed.scoreLimit || {}) }
-                };
-            } catch (err) {
-                console.warn("[PONG] Corrupted stats detected. Resetting.", err);
-                return defaultStats();
-            }
+    }
+    set(key, value) {
+        if (!this.enabled) return;
+        try {
+            window.localStorage.setItem(key, value);
+        } catch (err) {
+            console.warn("[PONG] Failed to write to LocalStorage.", err);
         }
+    }
+}
 
-        save() {
-            this.storage.set(this.storageKey, JSON.stringify(this.stats));
-        }
+class StatsManager {
+    constructor(storage) {
+        this.storage = storage;
+        this.storageKey = "enhancedPongStats";
+        this.stats = this.load() ?? defaultStats();
+    }
 
-        recordGame({ difficulty, scoreLimit, playerScore, aiScore, playerWon, duration }) {
-            const diffKey = difficulty;
-            const limitKey = String(scoreLimit);
-
-            this.stats.gamesPlayed += 1;
-            this.stats.totalPlayTime += duration;
-
-            if (playerWon) {
-                this.stats.gamesWon += 1;
-                this.stats.currentWinStreak += 1;
-                this.stats.bestWinStreak = Math.max(this.stats.bestWinStreak, this.stats.currentWinStreak);
-            } else {
-                this.stats.gamesLost += 1;
-                this.stats.currentWinStreak = 0;
-            }
-
-            if (!this.stats.difficulty[diffKey]) {
-                this.stats.difficulty[diffKey] = { played: 0, won: 0 };
-            }
-            this.stats.difficulty[diffKey].played += 1;
-            if (playerWon) this.stats.difficulty[diffKey].won += 1;
-
-            if (!this.stats.scoreLimit[limitKey]) {
-                this.stats.scoreLimit[limitKey] = { played: 0, won: 0 };
-            }
-            this.stats.scoreLimit[limitKey].played += 1;
-            if (playerWon) this.stats.scoreLimit[limitKey].won += 1;
-
-            this.save();
-        }
-
-        getSummary() {
-            const data = this.stats;
-            const winRate = data.gamesPlayed ? Math.round((data.gamesWon / data.gamesPlayed) * 100) : 0;
-            const avgTimeSec = data.gamesPlayed ? Math.round(data.totalPlayTime / data.gamesPlayed / 1000) : 0;
-
+    load() {
+        const raw = this.storage.get(this.storageKey);
+        if (!raw) return null;
+        try {
+            const parsed = JSON.parse(raw);
+            const base = defaultStats();
             return {
-                gamesPlayed: data.gamesPlayed,
-                gamesWon: data.gamesWon,
-                gamesLost: data.gamesLost,
-                winRate,
-                totalPlayTime: StatsManager.formatDuration(data.totalPlayTime),
-                avgGameTime: avgTimeSec,
-                bestWinStreak: data.bestWinStreak,
-                currentWinStreak: data.currentWinStreak
+                ...base,
+                ...parsed,
+                difficulty: { ...base.difficulty, ...(parsed.difficulty || {}) },
+                scoreLimit: { ...base.scoreLimit, ...(parsed.scoreLimit || {}) }
             };
-        }
-
-        static formatDuration(ms) {
-            const totalSeconds = Math.round(ms / 1000);
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+        } catch (err) {
+            console.warn("[PONG] Corrupted stats detected. Resetting.", err);
+            return defaultStats();
         }
     }
 
-    class GameState {
-        constructor() {
-            this.difficulty = "easy";
-            this.scoreLimit = 10;
-            this.running = false;
-            this.paused = false;
-            this.playerScore = 0;
-            this.aiScore = 0;
-            this.startTimestamp = 0;
-            this.endTimestamp = 0;
+    save() {
+        this.storage.set(this.storageKey, JSON.stringify(this.stats));
+    }
+
+    recordGame({ difficulty, scoreLimit, playerScore, aiScore, playerWon, duration }) {
+        const diffKey = difficulty;
+        const limitKey = String(scoreLimit);
+
+        this.stats.gamesPlayed += 1;
+        this.stats.totalPlayTime += duration;
+
+        if (playerWon) {
+            this.stats.gamesWon += 1;
+            this.stats.currentWinStreak += 1;
+            this.stats.bestWinStreak = Math.max(this.stats.bestWinStreak, this.stats.currentWinStreak);
+        } else {
+            this.stats.gamesLost += 1;
+            this.stats.currentWinStreak = 0;
         }
 
-        applyDifficulty(difficulty) {
-            if (difficultySettings[difficulty]) {
-                this.difficulty = difficulty;
-            }
+        if (!this.stats.difficulty[diffKey]) {
+            this.stats.difficulty[diffKey] = { played: 0, won: 0 };
         }
+        this.stats.difficulty[diffKey].played += 1;
+        if (playerWon) this.stats.difficulty[diffKey].won += 1;
 
-        applyScoreLimit(limit) {
-            const parsed = Number.parseInt(limit, 10);
-            if (!Number.isNaN(parsed)) {
-                this.scoreLimit = parsed;
-            }
+        if (!this.stats.scoreLimit[limitKey]) {
+            this.stats.scoreLimit[limitKey] = { played: 0, won: 0 };
         }
+        this.stats.scoreLimit[limitKey].played += 1;
+        if (playerWon) this.stats.scoreLimit[limitKey].won += 1;
 
-        startMatch() {
-            this.playerScore = 0;
-            this.aiScore = 0;
-            this.running = true;
-            this.paused = false;
-            this.startTimestamp = performance.now();
-            this.endTimestamp = 0;
-        }
+        this.save();
+    }
 
-        finishMatch() {
-            this.running = false;
-            this.paused = false;
-            this.endTimestamp = performance.now();
-        }
+    getSummary() {
+        const data = this.stats;
+        const winRate = data.gamesPlayed ? Math.round((data.gamesWon / data.gamesPlayed) * 100) : 0;
+        const avgTimeSec = data.gamesPlayed ? Math.round(data.totalPlayTime / data.gamesPlayed / 1000) : 0;
 
-        getDuration() {
-            if (!this.startTimestamp) return 0;
-            const end = this.endTimestamp || performance.now();
-            return Math.max(0, end - this.startTimestamp);
-        }
+        return {
+            gamesPlayed: data.gamesPlayed,
+            gamesWon: data.gamesWon,
+            gamesLost: data.gamesLost,
+            winRate,
+            totalPlayTime: StatsManager.formatDuration(data.totalPlayTime),
+            avgGameTime: avgTimeSec,
+            bestWinStreak: data.bestWinStreak,
+            currentWinStreak: data.currentWinStreak
+        };
+    }
 
-        registerPoint(who) {
-            if (who === "player") {
-                this.playerScore += 1;
-            } else {
-                this.aiScore += 1;
-            }
-            return this.playerScore >= this.scoreLimit || this.aiScore >= this.scoreLimit;
-        }
+    static formatDuration(ms) {
+        const totalSeconds = Math.round(ms / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    }
+}
 
-        getDifficultySettings() {
-            return difficultySettings[this.difficulty];
+class GameState {
+    constructor() {
+        this.difficulty = "easy";
+        this.scoreLimit = 10;
+        this.running = false;
+        this.paused = false;
+        this.playerScore = 0;
+        this.aiScore = 0;
+        this.startTimestamp = 0;
+        this.endTimestamp = 0;
+    }
+
+    applyDifficulty(difficulty) {
+        if (difficultySettings[difficulty]) {
+            this.difficulty = difficulty;
         }
     }
 
-    class UIManager {
-        constructor(app) {
-            this.app = app;
-            this.screens = Array.from(document.querySelectorAll(".screen"));
-            this.cacheElements();
-            this.bindEvents();
-            this.highlightDifficulty(this.app.state.difficulty);
-            this.scoreLimitSelect.value = this.app.state.scoreLimit;
-            this.updateHUD(this.app.state);
-            this.showSetup();
+    applyScoreLimit(limit) {
+        const parsed = Number.parseInt(limit, 10);
+        if (!Number.isNaN(parsed)) {
+            this.scoreLimit = parsed;
         }
+    }
 
-        cacheElements() {
-            this.playerScoreEl = document.getElementById("playerScore");
-            this.aiScoreEl = document.getElementById("aiScore");
-            this.difficultyDisplayEl = document.getElementById("difficultyDisplay");
-            this.scoreLimitDisplayEl = document.getElementById("scoreLimitDisplay");
-            this.scoreLimitSelect = document.getElementById("scoreLimit");
-            this.statsContentEl = document.getElementById("statsContent");
-            this.gameOverTitleEl = document.getElementById("gameOverTitle");
-            this.finalScoreEl = document.getElementById("finalScore");
+    startMatch() {
+        this.playerScore = 0;
+        this.aiScore = 0;
+        this.running = true;
+        this.paused = false;
+        this.startTimestamp = performance.now();
+        this.endTimestamp = 0;
+    }
+
+    finishMatch() {
+        this.running = false;
+        this.paused = false;
+        this.endTimestamp = performance.now();
+    }
+
+    getDuration() {
+        if (!this.startTimestamp) return 0;
+        const end = this.endTimestamp || performance.now();
+        return Math.max(0, end - this.startTimestamp);
+    }
+
+    registerPoint(who) {
+        if (who === "player") {
+            this.playerScore += 1;
+        } else {
+            this.aiScore += 1;
         }
+        return this.playerScore >= this.scoreLimit || this.aiScore >= this.scoreLimit;
+    }
 
-        bindEvents() {
-            document.querySelectorAll(".difficulty-btn").forEach((btn) => {
-                btn.addEventListener("click", () => {
-                    const diff = btn.dataset.difficulty;
-                    this.highlightDifficulty(diff);
-                    this.app.updateSettings({ difficulty: diff });
-                });
+    getDifficultySettings() {
+        return difficultySettings[this.difficulty];
+    }
+}
+
+class UIManager {
+    constructor(app) {
+        this.app = app;
+        this.screens = Array.from(document.querySelectorAll(".screen"));
+        this.cacheElements();
+        this.bindEvents();
+        this.highlightDifficulty(this.app.state.difficulty);
+        this.scoreLimitSelect.value = this.app.state.scoreLimit;
+        this.updateHUD(this.app.state);
+        this.showSetup();
+    }
+
+    cacheElements() {
+        this.playerScoreEl = document.getElementById("playerScore");
+        this.aiScoreEl = document.getElementById("aiScore");
+        this.difficultyDisplayEl = document.getElementById("difficultyDisplay");
+        this.scoreLimitDisplayEl = document.getElementById("scoreLimitDisplay");
+        this.scoreLimitSelect = document.getElementById("scoreLimit");
+        this.statsContentEl = document.getElementById("statsContent");
+        this.gameOverTitleEl = document.getElementById("gameOverTitle");
+        this.finalScoreEl = document.getElementById("finalScore");
+    }
+
+    bindEvents() {
+        document.querySelectorAll(".difficulty-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const diff = btn.dataset.difficulty;
+                this.highlightDifficulty(diff);
+                this.app.updateSettings({ difficulty: diff });
             });
+        });
 
-            this.scoreLimitSelect.addEventListener("change", (event) => {
-                this.app.updateSettings({ scoreLimit: event.target.value });
-            });
+        this.scoreLimitSelect.addEventListener("change", (event) => {
+            this.app.updateSettings({ scoreLimit: event.target.value });
+        });
 
-            const click = (id, handler) => {
-                const el = document.getElementById(id);
-                if (el) el.addEventListener("click", handler);
-            };
+        const click = (id, handler) => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener("click", handler);
+        };
 
-            click("startGameBtn", () => this.app.startMatch());
-            click("viewStatsBtn", () => this.app.showStats());
-            click("pauseBtn", () => this.app.pauseMatch());
-            click("quitBtn", () => this.app.quitToMenu());
-            click("resumeBtn", () => this.app.resumeMatch());
-            click("pauseQuitBtn", () => this.app.quitToMenu());
-            click("playAgainBtn", () => this.app.startMatch());
-            click("mainMenuBtn", () => this.app.quitToMenu());
-            click("backToMenuBtn", () => this.app.quitToMenu());
+        click("startGameBtn", () => this.app.startMatch());
+        click("viewStatsBtn", () => this.app.showStats());
+        click("pauseBtn", () => this.app.pauseMatch());
+        click("quitBtn", () => this.app.quitToMenu());
+        click("resumeBtn", () => this.app.resumeMatch());
+        click("pauseQuitBtn", () => this.app.quitToMenu());
+        click("playAgainBtn", () => this.app.startMatch());
+        click("mainMenuBtn", () => this.app.quitToMenu());
+        click("backToMenuBtn", () => this.app.quitToMenu());
 
-            document.addEventListener("keydown", (event) => {
-                if (event.code === "Space") {
-                    if (!event.repeat && this.app.state.running) {
-                        event.preventDefault();
-                        if (this.app.state.paused) this.app.resumeMatch();
-                        else this.app.pauseMatch();
-                    }
-                } else if (event.code === "Escape") {
-                    if (this.app.state.running) {
-                        event.preventDefault();
-                        if (this.app.state.paused) this.app.resumeMatch();
-                        else this.app.pauseMatch();
-                    }
+        document.addEventListener("keydown", (event) => {
+            if (event.code === "Space") {
+                if (!event.repeat && this.app.state.running) {
+                    event.preventDefault();
+                    if (this.app.state.paused) this.app.resumeMatch();
+                    else this.app.pauseMatch();
                 }
-            });
+            } else if (event.code === "Escape") {
+                if (this.app.state.running) {
+                    event.preventDefault();
+                    if (this.app.state.paused) this.app.resumeMatch();
+                    else this.app.pauseMatch();
+                }
+            }
+        });
+    }
+
+    highlightDifficulty(difficulty) {
+        document.querySelectorAll(".difficulty-btn").forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.difficulty === difficulty);
+        });
+    }
+
+    showScreen(name) {
+        this.screens.forEach((screen) => {
+            const shouldShow = screen.id === `${name}Screen`;
+            screen.classList.toggle("hidden", !shouldShow);
+        });
+        this.currentScreen = name;
+    }
+
+    showSetup() {
+        this.highlightDifficulty(this.app.state.difficulty);
+        this.scoreLimitSelect.value = this.app.state.scoreLimit;
+        this.showScreen("setup");
+    }
+
+    showGameScreen() {
+        this.showScreen("game");
+    }
+
+    showPauseScreen() {
+        this.showScreen("pause");
+    }
+
+    showStatsScreen() {
+        this.showScreen("stats");
+    }
+
+    showGameOver(playerWon, state) {
+        const title = playerWon ? "You Won!" : "You Lost!";
+        this.gameOverTitleEl.textContent = title;
+        this.gameOverTitleEl.style.color = playerWon ? "#4CAF50" : "#F44336";
+
+        const duration = StatsManager.formatDuration(state.getDuration());
+        this.finalScoreEl.innerHTML = `
+            Final Score: ${state.playerScore} - ${state.aiScore}<br>
+            Difficulty: ${this.capitalize(state.difficulty)}<br>
+            Score Limit: ${state.scoreLimit}<br>
+            Match Time: ${duration}
+        `;
+
+        this.showScreen("gameOver");
+    }
+
+    updateHUD(state) {
+        this.playerScoreEl.textContent = state.playerScore ?? 0;
+        this.aiScoreEl.textContent = state.aiScore ?? 0;
+        this.difficultyDisplayEl.textContent = this.capitalize(state.difficulty);
+        this.scoreLimitDisplayEl.textContent = state.scoreLimit;
+        this.scoreLimitSelect.value = state.scoreLimit;
+    }
+
+    populateStats(stats) {
+        if (!stats.gamesPlayed) {
+            this.statsContentEl.innerHTML = '<div class="stat-card">No games played yet. Start a match to build your stats!</div>';
+            return;
         }
 
-        highlightDifficulty(difficulty) {
-            document.querySelectorAll(".difficulty-btn").forEach((btn) => {
-                btn.classList.toggle("active", btn.dataset.difficulty === difficulty);
-            });
+        const summary = this.app.stats.getSummary();
+
+        const diffRows = Object.entries(stats.difficulty).map(([key, data]) => {
+            const rate = data.played ? Math.round((data.won / data.played) * 100) : 0;
+            return `<div class="stat-card"><strong>${this.capitalize(key)}:</strong> ${data.won}/${data.played} wins (${rate}%)</div>`;
+        }).join("");
+
+        const limitRows = Object.entries(stats.scoreLimit).map(([limit, data]) => {
+            const rate = data.played ? Math.round((data.won / data.played) * 100) : 0;
+            return `<div class="stat-card"><strong>${limit} Points:</strong> ${data.won}/${data.played} wins (${rate}%)</div>`;
+        }).join("");
+
+        this.statsContentEl.innerHTML = `
+            <div class="stat-card"><strong>Games Played:</strong> ${summary.gamesPlayed}</div>
+            <div class="stat-card"><strong>Wins:</strong> ${summary.gamesWon}</div>
+            <div class="stat-card"><strong>Losses:</strong> ${summary.gamesLost}</div>
+            <div class="stat-card"><strong>Win Rate:</strong> ${summary.winRate}%</div>
+            <div class="stat-card"><strong>Current Win Streak:</strong> ${summary.currentWinStreak}</div>
+            <div class="stat-card"><strong>Best Win Streak:</strong> ${summary.bestWinStreak}</div>
+            <div class="stat-card"><strong>Total Play Time:</strong> ${summary.totalPlayTime}</div>
+            <div class="stat-card"><strong>Average Match Length:</strong> ${summary.avgGameTime}s</div>
+            <div class="stats-subheading">By Difficulty</div>
+            ${diffRows}
+            <div class="stats-subheading">By Score Limit</div>
+            ${limitRows}
+        `;
+    }
+
+    capitalize(text) {
+        return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
+    }
+}
+
+class PongGame {
+    constructor(app) {
+        this.app = app;
+        this.canvas = document.getElementById("pongCanvas");
+        this.ctx = this.canvas.getContext("2d");
+        if (!this.ctx) {
+            throw new Error("Unable to acquire 2D context for Pong canvas.");
         }
 
-        showScreen(name) {
-            this.screens.forEach((screen) => {
-                const shouldShow = screen.id === `${name}Screen`;
-                screen.classList.toggle("hidden", !shouldShow);
-            });
-            this.currentScreen = name;
+        this.width = 0;
+        this.height = 0;
+
+        this.playerPaddle = { x: 0, y: 0, width: 12, height: 90 };
+        this.aiPaddle = { x: 0, y: 0, width: 12, height: 90 };
+        this.ball = { x: 0, y: 0, size: 12, vx: 0, vy: 0 };
+
+        this.playerSpeed = 0;
+        this.aiBaseSpeed = 0;
+        this.aiBaseError = 0;
+        this.baseBallSpeed = 0;
+        this.baseBallAccel = 0;
+
+        this.keys = new Set();
+        this.mouseControl = false;
+        this.lastTimestamp = 0;
+
+        this.bindControls();
+        this.resizeCanvas();
+        window.addEventListener("resize", () => this.resizeCanvas());
+        requestAnimationFrame((ts) => this.loop(ts));
+    }
+
+    resizeCanvas() {
+        const w = Math.max(1, Math.round(this.canvas.clientWidth));
+        const h = Math.max(1, Math.round(this.canvas.clientHeight));
+
+        const prevWidth = this.width || w;
+        const prevHeight = this.height || h;
+
+        const prevPlayerRatio = this.playerPaddle.height ? this.playerPaddle.y / prevHeight : 0.5;
+        const prevAiRatio = this.aiPaddle.height ? this.aiPaddle.y / prevHeight : 0.5;
+
+        const prevBallCenterX = (typeof this.ball.x === "number") ? this.ball.x + this.ball.size / 2 : prevWidth / 2;
+        const prevBallCenterY = (typeof this.ball.y === "number") ? this.ball.y + this.ball.size / 2 : prevHeight / 2;
+        const prevBallRatioX = prevWidth ? prevBallCenterX / prevWidth : 0.5;
+        const prevBallRatioY = prevHeight ? prevBallCenterY / prevHeight : 0.5;
+
+        this.canvas.width = w;
+        this.canvas.height = h;
+        this.width = w;
+        this.height = h;
+
+        const paddleWidth = Math.max(10, w * 0.015);
+        const paddleHeight = Math.max(60, h * 0.22);
+        const paddleMargin = Math.max(10, w * 0.03);
+
+        this.playerPaddle.width = paddleWidth;
+        this.playerPaddle.height = paddleHeight;
+        this.playerPaddle.x = paddleMargin;
+        this.playerPaddle.y = prevPlayerRatio * h;
+
+        this.aiPaddle.width = paddleWidth;
+        this.aiPaddle.height = paddleHeight;
+        this.aiPaddle.x = w - paddleMargin - paddleWidth;
+        this.aiPaddle.y = prevAiRatio * h;
+
+        this.clampPaddle(this.playerPaddle);
+        this.clampPaddle(this.aiPaddle);
+
+        const ballSize = Math.max(10, w * 0.02);
+        const scaleX = prevWidth ? w / prevWidth : 1;
+        const scaleY = prevHeight ? h / prevHeight : 1;
+
+        this.ball.size = ballSize;
+        this.ball.x = prevBallRatioX * w - ballSize / 2;
+        this.ball.y = prevBallRatioY * h - ballSize / 2;
+        this.ball.vx *= scaleX;
+        this.ball.vy *= scaleY;
+
+        this.playerSpeed = h * 1.6;
+        this.aiBaseSpeed = h * 1.35;
+        this.aiBaseError = h * 0.18;
+        this.baseBallSpeed = w * 0.75;
+        this.baseBallAccel = w * 0.04;
+
+        if (!this.app.state.running) {
+            this.centerElements();
         }
+    }
 
-        showSetup() {
-            this.highlightDifficulty(this.app.state.difficulty);
-            this.scoreLimitSelect.value = this.app.state.scoreLimit;
-            this.showScreen("setup");
-        }
+    centerElements() {
+        this.playerPaddle.y = (this.height - this.playerPaddle.height) / 2;
+        this.aiPaddle.y = (this.height - this.aiPaddle.height) / 2;
+        this.ball.x = this.width / 2 - this.ball.size / 2;
+        this.ball.y = this.height / 2 - this.ball.size / 2;
+        this.ball.vx = 0;
+        this.ball.vy = 0;
+    }
 
-        showGameScreen() {
-            this.showScreen("game");
-        }
+    bindControls() {
+        this.canvas.addEventListener("mousemove", (event) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const scale = this.canvas.height / rect.height;
+            this.mouseControl = true;
+            this.playerPaddle.y = (event.clientY - rect.top) * scale - this.playerPaddle.height / 2;
+            this.clampPaddle(this.playerPaddle);
+        });
 
-        showPauseScreen() {
-            this.showScreen("pause");
-        }
+        this.canvas.addEventListener("touchmove", (event) => {
+            event.preventDefault();
+            if (!event.touches.length) return;
+            const rect = this.canvas.getBoundingClientRect();
+            const scale = this.canvas.height / rect.height;
+            this.mouseControl = true;
+            const touch = event.touches[0];
+            this.playerPaddle.y = (touch.clientY - rect.top) * scale - this.playerPaddle.height / 2;
+            this.clampPaddle(this.playerPaddle);
+        }, { passive: false });
 
-        showStatsScreen() {
-            this.showScreen("stats");
-        }
+        document.addEventListener("keydown", (event) => {
+            if (["ArrowUp", "KeyW"].includes(event.code)) {
+                this.mouseControl = false;
+                this.keys.add("up");
+            } else if (["ArrowDown", "KeyS"].includes(event.code)) {
+                this.mouseControl = false;
+                this.keys.add("down");
+            }
+        });
 
-        showGameOver(playerWon, state) {
-            const title = playerWon ? "You Won!" : "You Lost!";
-            this.gameOverTitleEl.textContent = title;
-            this.gameOverTitleEl.style.color = playerWon ? "#4CAF50" : "#F44336";
+        document.addEventListener("keyup", (event) => {
+            if (["ArrowUp", "KeyW"].includes(event.code)) {
+                this.keys.delete("up");
+            } else if (["ArrowDown", "KeyS"].includes(event.code)) {
+                this.keys.delete("down");
+            }
+        });
+    }
 
-            const duration = StatsManager.formatDuration(state.getDuration());
-            this.finalScoreEl.innerHTML = `
-                Final Score: ${state.playerScore} - ${state.aiScore}<br>
-                Difficulty: ${this.capitalize(state.difficulty)}<br>
-                Score Limit: ${state.scoreLimit}<br>
-                Match Time: ${duration}
-            `;
+    clampPaddle(paddle) {
+        if (paddle.y < 0) paddle.y = 0;
+        if (paddle.y + paddle.height > this.height) paddle.y = this.height - paddle.height;
+    }
 
-            this.showScreen("gameOver");
-        }
+    startMatch() {
+        this.centerElements();
+        this.serveBall();
+    }
 
-        updateHUD(state) {
-            this.playerScoreEl.textContent = state.playerScore ?? 0;
-            this.aiScoreEl.textContent = state.aiScore ?? 0;
-            this.difficultyDisplayEl.textContent = this.capitalize(state.difficulty);
-            this.scoreLimitDisplayEl.textContent = state.scoreLimit;
-            this.scoreLimitSelect.value = state.scoreLimit;
-        }
+    serveBall(direction) {
+        const settings = this.app.state.getDifficultySettings();
+        const dir = typeof direction === "number" ? Math.sign(direction) || 1 : (Math.random() > 0.5 ? 1 : -1);
+        const angle = (Math.random() * Math.PI / 3) - (Math.PI / 6);
+        const speed = this.baseBallSpeed * settings.ballSpeed;
 
-        populateStats(stats) {
-            if (!stats.gamesPlayed) {
-                this.statsContentEl.innerHTML = '<div class="stat-card">No games played yet. Start a match to build your stats!</div>';
+        this.ball.x = this.width / 2 - this.ball.size / 2;
+        this.ball.y = this.height / 2 - this.ball.size / 2;
+        this.ball.vx = Math.cos(angle) * speed * dir;
+        this.ball.vy = Math.sin(angle) * speed;
+    }
+
+    onMatchFinished() {
+        this.centerElements();
+    }
+
+    loop(timestamp) {
+        if (!this.lastTimestamp) this.lastTimestamp = timestamp;
+        const delta = (timestamp - this.lastTimestamp) / 1000;
+        this.lastTimestamp = timestamp;
+
+        this.update(delta);
+        this.draw();
+        requestAnimationFrame((ts) => this.loop(ts));
+    }
+
+    update(delta) {
+        if (this.app.state.running && !this.app.state.paused) {
+            if (!this.mouseControl) {
+                let dir = 0;
+                if (this.keys.has("up")) dir -= 1;
+                if (this.keys.has("down")) dir += 1;
+                if (dir !== 0) {
+                    this.playerPaddle.y += dir * this.playerSpeed * delta;
+                    this.clampPaddle(this.playerPaddle);
+                }
+            }
+
+            this.ball.x += this.ball.vx * delta;
+            this.ball.y += this.ball.vy * delta;
+
+            if (this.ball.y <= 0) {
+                this.ball.y = 0;
+                this.ball.vy *= -1;
+            } else if (this.ball.y + this.ball.size >= this.height) {
+                this.ball.y = this.height - this.ball.size;
+                this.ball.vy *= -1;
+            }
+
+            this.checkPaddleCollision(this.playerPaddle, true);
+            this.checkPaddleCollision(this.aiPaddle, false);
+
+            this.updateAI(delta);
+
+            if (this.ball.x + this.ball.size < 0) {
+                this.app.onPoint("ai");
                 return;
             }
-
-            const summary = this.app.stats.getSummary();
-
-            const diffRows = Object.entries(stats.difficulty).map(([key, data]) => {
-                const rate = data.played ? Math.round((data.won / data.played) * 100) : 0;
-                return `<div class="stat-card"><strong>${this.capitalize(key)}:</strong> ${data.won}/${data.played} wins (${rate}%)</div>`;
-            }).join("");
-
-            const limitRows = Object.entries(stats.scoreLimit).map(([limit, data]) => {
-                const rate = data.played ? Math.round((data.won / data.played) * 100) : 0;
-                return `<div class="stat-card"><strong>${limit} Points:</strong> ${data.won}/${data.played} wins (${rate}%)</div>`;
-            }).join("");
-
-            this.statsContentEl.innerHTML = `
-                <div class="stat-card"><strong>Games Played:</strong> ${summary.gamesPlayed}</div>
-                <div class="stat-card"><strong>Wins:</strong> ${summary.gamesWon}</div>
-                <div class="stat-card"><strong>Losses:</strong> ${summary.gamesLost}</div>
-                <div class="stat-card"><strong>Win Rate:</strong> ${summary.winRate}%</div>
-                <div class="stat-card"><strong>Current Win Streak:</strong> ${summary.currentWinStreak}</div>
-                <div class="stat-card"><strong>Best Win Streak:</strong> ${summary.bestWinStreak}</div>
-                <div class="stat-card"><strong>Total Play Time:</strong> ${summary.totalPlayTime}</div>
-                <div class="stat-card"><strong>Average Match Length:</strong> ${summary.avgGameTime}s</div>
-                <div class="stats-subheading">By Difficulty</div>
-                ${diffRows}
-                <div class="stats-subheading">By Score Limit</div>
-                ${limitRows}
-            `;
-        }
-
-        capitalize(text) {
-            return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
-        }
-    }
-
-    class PongGame {
-        constructor(app) {
-            this.app = app;
-            this.canvas = document.getElementById("pongCanvas");
-            this.ctx = this.canvas.getContext("2d");
-            if (!this.ctx) {
-                throw new Error("Unable to acquire 2D context for Pong canvas.");
+            if (this.ball.x > this.width) {
+                this.app.onPoint("player");
+                return;
             }
-
-            this.width = 0;
-            this.height = 0;
-
-            this.playerPaddle = { x: 0, y: 0, width: 12, height: 90 };
-            this.aiPaddle = { x: 0, y: 0, width: 12, height: 90 };
-            this.ball = { x: 0, y: 0, size: 12, vx: 0, vy: 0 };
-
-            this.playerSpeed = 0;
-            this.aiBaseSpeed = 0;
-            this.aiBaseError = 0;
-            this.baseBallSpeed = 0;
-            this.baseBallAccel = 0;
-
-            this.keys = new Set();
-            this.mouseControl = false;
-            this.lastTimestamp = 0;
-
-            this.resizeCanvas();
-            window.addEventListener("resize", () => this.resizeCanvas());
-            this.bindControls();
-            requestAnimationFrame((ts) => this.loop(ts));
-        }
-
-        resizeCanvas() {
-            const w = Math.max(1, Math.round(this.canvas.clientWidth));
-            const h = Math.max(1, Math.round(this.canvas.clientHeight));
-
-            const prevWidth = this.width || w;
-            const prevHeight = this.height || h;
-
-            const prevPlayerRatio = this.playerPaddle.height ? this.playerPaddle.y / prevHeight : 0.5;
-            const prevAiRatio = this.aiPaddle.height ? this.aiPaddle.y / prevHeight : 0.5;
-
-            const prevBallCenterX = (typeof this.ball.x === "number") ? this.ball.x + this.ball.size / 2 : prevWidth / 2;
-            const prevBallCenterY = (typeof this.ball.y === "number") ? this.ball.y + this.ball.size / 2 : prevHeight / 2;
-            const prevBallRatioX = prevWidth ? prevBallCenterX / prevWidth : 0.5;
-            const prevBallRatioY = prevHeight ? prevBallCenterY / prevHeight : 0.5;
-
-            this.canvas.width = w;
-            this.canvas.height = h;
-            this.width = w;
-            this.height = h;
-
-            const paddleWidth = Math.max(10, w * 0.015);
-            const paddleHeight = Math.max(60, h * 0.22);
-            const paddleMargin = Math.max(10, w * 0.03);
-
-            this.playerPaddle.width = paddleWidth;
-            this.playerPaddle.height = paddleHeight;
-            this.playerPaddle.x = paddleMargin;
-            this.playerPaddle.y = prevPlayerRatio * h;
-
-            this.aiPaddle.width = paddleWidth;
-            this.aiPaddle.height = paddleHeight;
-            this.aiPaddle.x = w - paddleMargin - paddleWidth;
-            this.aiPaddle.y = prevAiRatio * h;
-
-            this.clampPaddle(this.playerPaddle);
-            this.clampPaddle(this.aiPaddle);
-
-            const ballSize = Math.max(10, w * 0.02);
-            const scaleX = prevWidth ? w / prevWidth : 1;
-            const scaleY = prevHeight ? h / prevHeight : 1;
-
-            this.ball.size = ballSize;
-            this.ball.x = prevBallRatioX * w - ballSize / 2;
-            this.ball.y = prevBallRatioY * h - ballSize / 2;
-            this.ball.vx *= scaleX;
-            this.ball.vy *= scaleY;
-
-            this.playerSpeed = h * 1.6;
-            this.aiBaseSpeed = h * 1.35;
-            this.aiBaseError = h * 0.18;
-            this.baseBallSpeed = w * 0.75;
-            this.baseBallAccel = w * 0.04;
-
-            if (!this.app.state.running) {
-                this.centerElements();
-            }
-        }
-
-        centerElements() {
-            this.playerPaddle.y = (this.height - this.playerPaddle.height) / 2;
-            this.aiPaddle.y = (this.height - this.aiPaddle.height) / 2;
-            this.ball.x = this.width / 2 - this.ball.size / 2;
-            this.ball.y = this.height / 2 - this.ball.size / 2;
+        } else if (!this.app.state.running) {
             this.ball.vx = 0;
             this.ball.vy = 0;
         }
+    }
 
-        bindControls() {
-            this.canvas.addEventListener("mousemove", (event) => {
-                const rect = this.canvas.getBoundingClientRect();
-                const scale = this.canvas.height / rect.height;
-                this.mouseControl = true;
-                this.playerPaddle.y = (event.clientY - rect.top) * scale - this.playerPaddle.height / 2;
-                this.clampPaddle(this.playerPaddle);
-            });
+    checkPaddleCollision(paddle, isPlayer) {
+        const ballLeft = this.ball.x;
+        const ballRight = this.ball.x + this.ball.size;
+        const ballTop = this.ball.y;
+        const ballBottom = this.ball.y + this.ball.size;
 
-            this.canvas.addEventListener("touchmove", (event) => {
-                event.preventDefault();
-                if (!event.touches.length) return;
-                const rect = this.canvas.getBoundingClientRect();
-                const scale = this.canvas.height / rect.height;
-                this.mouseControl = true;
-                const touch = event.touches[0];
-                this.playerPaddle.y = (touch.clientY - rect.top) * scale - this.playerPaddle.height / 2;
-                this.clampPaddle(this.playerPaddle);
-            }, { passive: false });
+        const paddleLeft = paddle.x;
+        const paddleRight = paddle.x + paddle.width;
+        const paddleTop = paddle.y;
+        const paddleBottom = paddle.y + paddle.height;
 
-            document.addEventListener("keydown", (event) => {
-                if (["ArrowUp", "KeyW"].includes(event.code)) {
-                    this.mouseControl = false;
-                    this.keys.add("up");
-                } else if (["ArrowDown", "KeyS"].includes(event.code)) {
-                    this.mouseControl = false;
-                    this.keys.add("down");
-                }
-            });
+        const intersects = !(ballRight < paddleLeft || ballLeft > paddleRight || ballBottom < paddleTop || ballTop > paddleBottom);
+        if (!intersects) return;
 
-            document.addEventListener("keyup", (event) => {
-                if (["ArrowUp", "KeyW"].includes(event.code)) {
-                    this.keys.delete("up");
-                } else if (["ArrowDown", "KeyS"].includes(event.code)) {
-                    this.keys.delete("down");
-                }
-            });
+        const movingToward = isPlayer ? this.ball.vx < 0 : this.ball.vx > 0;
+        if (!movingToward) return;
+
+        const settings = this.app.state.getDifficultySettings();
+        const paddleCenter = paddle.y + paddle.height / 2;
+        const ballCenter = this.ball.y + this.ball.size / 2;
+        const relative = (ballCenter - paddleCenter) / (paddle.height / 2);
+        const clamped = Math.max(-1, Math.min(1, relative));
+        const bounceAngle = clamped * (Math.PI / 3);
+
+        const speed = Math.hypot(this.ball.vx, this.ball.vy);
+        const speedBoost = Math.min(this.baseBallSpeed * 1.4, speed + this.baseBallAccel * settings.ballAccel);
+        const direction = isPlayer ? 1 : -1;
+
+        this.ball.vx = Math.cos(bounceAngle) * speedBoost * direction;
+        this.ball.vy = Math.sin(bounceAngle) * speedBoost;
+
+        if (isPlayer) {
+            this.ball.x = paddleRight;
+        } else {
+            this.ball.x = paddleLeft - this.ball.size;
+        }
+    }
+
+    updateAI(delta) {
+        const settings = this.app.state.getDifficultySettings();
+        const aiSpeed = this.aiBaseSpeed * settings.aiSpeed;
+        const aiError = this.aiBaseError * settings.aiError;
+
+        const ballCenter = this.ball.y + this.ball.size / 2;
+        const target = ballCenter - this.aiPaddle.height / 2 + (Math.random() - 0.5) * aiError;
+        const diff = target - this.aiPaddle.y;
+        const maxStep = aiSpeed * delta;
+
+        if (Math.abs(diff) <= maxStep) {
+            this.aiPaddle.y = target;
+        } else {
+            this.aiPaddle.y += diff > 0 ? maxStep : -maxStep;
         }
 
-        clampPaddle(paddle) {
-            if (paddle.y < 0) paddle.y = 0;
-            if (paddle.y + paddle.height > this.height) paddle.y = this.height - paddle.height;
-        }
+        this.clampPaddle(this.aiPaddle);
+    }
 
-        startMatch() {
-            this.centerElements();
-            this.serveBall();
-        }
+    draw() {
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        serveBall(direction) {
-            const settings = this.app.state.getDifficultySettings();
-            const dir = typeof direction === "number" ? Math.sign(direction) || 1 : (Math.random() > 0.5 ? 1 : -1);
-            const angle = (Math.random() * Math.PI / 3) - (Math.PI / 6);
-            const speed = this.baseBallSpeed * settings.ballSpeed;
+        ctx.fillStyle = "#111";
+        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-            this.ball.x = this.width / 2 - this.ball.size / 2;
-            this.ball.y = this.height / 2 - this.ball.size / 2;
-            this.ball.vx = Math.cos(angle) * speed * dir;
-            this.ball.vy = Math.sin(angle) * speed;
-        }
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([16, 16]);
+        ctx.beginPath();
+        ctx.moveTo(this.canvas.width / 2, 0);
+        ctx.lineTo(this.canvas.width / 2, this.canvas.height);
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-        onMatchFinished() {
-            this.centerElements();
-        }
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(this.playerPaddle.x, this.playerPaddle.y, this.playerPaddle.width, this.playerPaddle.height);
+        ctx.fillRect(this.aiPaddle.x, this.aiPaddle.y, this.aiPaddle.width, this.aiPaddle.height);
 
-        loop(timestamp) {
-            if (!this.lastTimestamp) this.lastTimestamp = timestamp;
-            const delta = (timestamp - this.lastTimestamp) / 1000;
-            this.lastTimestamp = timestamp;
+        ctx.beginPath();
+        ctx.arc(this.ball.x + this.ball.size / 2, this.ball.y + this.ball.size / 2, this.ball.size / 2, 0, Math.PI * 2);
+        ctx.fill();
 
-            this.update(delta);
-            this.draw();
-            requestAnimationFrame((ts) => this.loop(ts));
-        }
-
-        update(delta) {
-            if (this.app.state.running && !this.app.state.paused) {
-                if (!this.mouseControl) {
-                    let dir = 0;
-                    if (this.keys.has("up")) dir -= 1;
-                    if (this.keys.has("down")) dir += 1;
-                    if (dir !== 0) {
-                        this.playerPaddle.y += dir * this.playerSpeed * delta;
-                        this.clampPaddle(this.playerPaddle);
-                    }
-                }
-
-                this.ball.x += this.ball.vx * delta;
-                this.ball.y += this.ball.vy * delta;
-
-                if (this.ball.y <= 0) {
-                    this.ball.y = 0;
-                    this.ball.vy *= -1;
-                } else if (this.ball.y + this.ball.size >= this.height) {
-                    this.ball.y = this.height - this.ball.size;
-                    this.ball.vy *= -1;
-                }
-
-                this.checkPaddleCollision(this.playerPaddle, true);
-                this.checkPaddleCollision(this.aiPaddle, false);
-
-                this.updateAI(delta);
-
-                if (this.ball.x + this.ball.size < 0) {
-                    this.app.onPoint("ai");
-                    return;
-                }
-                if (this.ball.x > this.width) {
-                    this.app.onPoint("player");
-                    return;
-                }
-            } else if (!this.app.state.running) {
-                this.ball.vx = 0;
-                this.ball.vy = 0;
-            }
-        }
-
-        checkPaddleCollision(paddle, isPlayer) {
-            const ballLeft = this.ball.x;
-            const ballRight = this.ball.x + this.ball.size;
-            const ballTop = this.ball.y;
-            const ballBottom = this.ball.y + this.ball.size;
-
-            const paddleLeft = paddle.x;
-            const paddleRight = paddle.x + paddle.width;
-            const paddleTop = paddle.y;
-            const paddleBottom = paddle.y + paddle.height;
-
-            const intersects = !(ballRight < paddleLeft || ballLeft > paddleRight || ballBottom < paddleTop || ballTop > paddleBottom);
-            if (!intersects) return;
-
-            const movingToward = isPlayer ? this.ball.vx < 0 : this.ball.vx > 0;
-            if (!movingToward) return;
-
-            const settings = this.app.state.getDifficultySettings();
-            const paddleCenter = paddle.y + paddle.height / 2;
-            const ballCenter = this.ball.y + this.ball.size / 2;
-            const relative = (ballCenter - paddleCenter) / (paddle.height / 2);
-            const clamped = Math.max(-1, Math.min(1, relative));
-            const bounceAngle = clamped * (Math.PI / 3);
-
-            const speed = Math.hypot(this.ball.vx, this.ball.vy);
-            const speedBoost = Math.min(this.baseBallSpeed * 1.4, speed + this.baseBallAccel * settings.ballAccel);
-            const direction = isPlayer ? 1 : -1;
-
-            this.ball.vx = Math.cos(bounceAngle) * speedBoost * direction;
-            this.ball.vy = Math.sin(bounceAngle) * speedBoost;
-
-            if (isPlayer) {
-                this.ball.x = paddleRight;
-            } else {
-                this.ball.x = paddleLeft - this.ball.size;
-            }
-        }
-
-        updateAI(delta) {
-            const settings = this.app.state.getDifficultySettings();
-            const aiSpeed = this.aiBaseSpeed * settings.aiSpeed;
-            const aiError = this.aiBaseError * settings.aiError;
-
-            const ballCenter = this.ball.y + this.ball.size / 2;
-            const target = ballCenter - this.aiPaddle.height / 2 + (Math.random() - 0.5) * aiError;
-            const diff = target - this.aiPaddle.y;
-            const maxStep = aiSpeed * delta;
-
-            if (Math.abs(diff) <= maxStep) {
-                this.aiPaddle.y = target;
-            } else {
-                this.aiPaddle.y += diff > 0 ? maxStep : -maxStep;
-            }
-
-            this.clampPaddle(this.aiPaddle);
-        }
-
-        draw() {
-            const ctx = this.ctx;
-            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-            ctx.fillStyle = "#111";
+        if (this.app.state.paused) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
             ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-            ctx.strokeStyle = "#333";
-            ctx.lineWidth = 2;
-            ctx.setLineDash([16, 16]);
-            ctx.beginPath();
-            ctx.moveTo(this.canvas.width / 2, 0);
-            ctx.lineTo(this.canvas.width / 2, this.canvas.height);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
             ctx.fillStyle = "#fff";
-            ctx.fillRect(this.playerPaddle.x, this.playerPaddle.y, this.playerPaddle.width, this.playerPaddle.height);
-            ctx.fillRect(this.aiPaddle.x, this.aiPaddle.y, this.aiPaddle.width, this.aiPaddle.height);
-
-            ctx.beginPath();
-            ctx.arc(this.ball.x + this.ball.size / 2, this.ball.y + this.ball.size / 2, this.ball.size / 2, 0, Math.PI * 2);
-            ctx.fill();
-
-            if (this.app.state.paused) {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
-                ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-                ctx.fillStyle = "#fff";
-                ctx.font = `${Math.round(this.canvas.height * 0.08)}px "Courier New", monospace`;
-                ctx.textAlign = "center";
-                ctx.fillText("PAUSED", this.canvas.width / 2, this.canvas.height / 2);
-            } else if (!this.app.state.running) {
-                ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
-                ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-                ctx.fillStyle = "#fff";
-                ctx.font = `${Math.round(this.canvas.height * 0.05)}px "Courier New", monospace`;
-                ctx.textAlign = "center";
-                ctx.fillText("Press START to Play", this.canvas.width / 2, this.canvas.height / 2);
-            }
+            ctx.font = `${Math.round(this.canvas.height * 0.08)}px "Courier New", monospace`;
+            ctx.textAlign = "center";
+            ctx.fillText("PAUSED", this.canvas.width / 2, this.canvas.height / 2);
         }
     }
+}
 
-    class App {
-        constructor() {
-            this.storage = new StorageHelper();
-            this.state = new GameState();
-            this.stats = new StatsManager(this.storage);
-            this.ui = new UIManager(this);
-            this.game = new PongGame(this);
-            this.ui.updateHUD(this.state);
-        }
+class App {
+    constructor() {
+        this.storage = new StorageHelper();
+        this.state = new GameState();
+        this.stats = new StatsManager(this.storage);
+        this.ui = new UIManager(this);
+        this.game = new PongGame(this);
+        this.ui.updateHUD(this.state);
+    }
 
-        startMatch() {
-            this.state.startMatch();
-            this.ui.updateHUD(this.state);
-            this.ui.showGameScreen();
-            this.game.startMatch();
-        }
+    startMatch() {
+        this.state.startMatch();
+        this.ui.updateHUD(this.state);
+        this.ui.showGameScreen();
+        this.game.startMatch();
+    }
 
-        onPoint(who) {
-            if (!this.state.running) return;
-            const finished = this.state.registerPoint(who);
-            this.ui.updateHUD(this.state);
+    onPoint(who) {
+        if (!this.state.running) return;
+        const finished = this.state.registerPoint(who);
+        this.ui.updateHUD(this.state);
 
-            if (finished) {
-                const playerWon = this.state.playerScore > this.state.aiScore;
-                this.state.finishMatch();
-                this.stats.recordGame({
-                    difficulty: this.state.difficulty,
-                    scoreLimit: this.state.scoreLimit,
-                    playerScore: this.state.playerScore,
-                    aiScore: this.state.aiScore,
-                    playerWon,
-                    duration: this.state.getDuration()
-                });
-                this.game.onMatchFinished();
-                this.ui.showGameOver(playerWon, this.state);
-            } else {
-                this.game.serveBall(who === "player" ? -1 : 1);
-            }
-        }
-
-        pauseMatch() {
-            if (!this.state.running || this.state.paused) return;
-            this.state.paused = true;
-            this.ui.showPauseScreen();
-        }
-
-        resumeMatch() {
-            if (!this.state.paused) return;
-            this.state.paused = false;
-            this.ui.showGameScreen();
-        }
-
-        quitToMenu() {
-            if (this.state.running) {
-                this.state.finishMatch();
-            }
-            this.state.paused = false;
-            this.state.playerScore = 0;
-            this.state.aiScore = 0;
+        if (finished) {
+            const playerWon = this.state.playerScore > this.state.aiScore;
+            this.state.finishMatch();
+            this.stats.recordGame({
+                difficulty: this.state.difficulty,
+                scoreLimit: this.state.scoreLimit,
+                playerScore: this.state.playerScore,
+                aiScore: this.state.aiScore,
+                playerWon,
+                duration: this.state.getDuration()
+            });
             this.game.onMatchFinished();
-            this.ui.updateHUD(this.state);
-            this.ui.showSetup();
-        }
-
-        showStats() {
-            this.ui.populateStats(this.stats.stats);
-            this.ui.showStatsScreen();
-        }
-
-        updateSettings({ difficulty, scoreLimit }) {
-            if (difficulty) this.state.applyDifficulty(difficulty);
-            if (scoreLimit) this.state.applyScoreLimit(scoreLimit);
-            this.ui.updateHUD(this.state);
+            this.ui.showGameOver(playerWon, this.state);
+        } else {
+            this.game.serveBall(who === "player" ? -1 : 1);
         }
     }
 
+    pauseMatch() {
+        if (!this.state.running || this.state.paused) return;
+        this.state.paused = true;
+        this.ui.showPauseScreen();
+    }
+
+    resumeMatch() {
+        if (!this.state.paused) return;
+        this.state.paused = false;
+        this.ui.showGameScreen();
+    }
+
+    quitToMenu() {
+        if (this.state.running) {
+            this.state.finishMatch();
+        }
+        this.state.paused = false;
+        this.state.playerScore = 0;
+        this.state.aiScore = 0;
+        this.game.onMatchFinished();
+        this.ui.updateHUD(this.state);
+        this.ui.showSetup();
+    }
+
+    showStats() {
+        this.ui.populateStats(this.stats.stats);
+        this.ui.showStatsScreen();
+    }
+
+    updateSettings({ difficulty, scoreLimit }) {
+        if (difficulty) this.state.applyDifficulty(difficulty);
+        if (scoreLimit) this.state.applyScoreLimit(scoreLimit);
+        this.ui.updateHUD(this.state);
+    }
+}
+
+if (document.readyState === 'loading') {
     document.addEventListener("DOMContentLoaded", () => {
         window.enhancedPong = new App();
     });
-    })();
-    </script>
+} else {
+    window.enhancedPong = new App();
+}
+})();
+</script>
 </body>
 </html>
