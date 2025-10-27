@@ -214,6 +214,18 @@ class PongGame {
 
         this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
 
+        // Debug watermark to confirm draw() is executing and painting to this canvas
+        try {
+            if (window.PongDebug && PongDebug.enabled) {
+                this.ctx.save();
+                this.ctx.fillStyle = '#0f0';
+                this.ctx.font = '12px Courier New';
+                this.ctx.textAlign = 'left';
+                this.ctx.fillText('DRAW', 8, 16);
+                this.ctx.restore();
+            }
+        } catch (_) {}
+
         // Draw midline
         this.ctx.strokeStyle = "#333";
         this.ctx.lineWidth = 2;
